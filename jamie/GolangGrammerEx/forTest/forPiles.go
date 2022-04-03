@@ -1,3 +1,4 @@
+//중첩 for문 이용 별찍기
 package main
 
 import "fmt"

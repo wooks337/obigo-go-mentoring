@@ -1,4 +1,4 @@
-package koreapost
+package fedex
 
 import "fmt"
 

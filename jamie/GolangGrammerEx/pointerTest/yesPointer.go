@@ -10,6 +10,7 @@ type Data struct {
 func ChangeData(arg *Data) { //파라미터로 Data 포인터 받음
 	arg.value = 999
 	arg.data[100] = 999
+
 }
 func main() {
 	var data Data
