@@ -1,5 +1,6 @@
 # Obigo-Go-Study
 w/ Tucker의 Go 언어 프로그래밍
+[정리 Notion][https://www.notion.so/Go-Lang-ec1bcf2023b14cfc9d919a021b4bc622]
 <details>
   <summary><h2><b>Go 기초 문법<b></h2></summary>
 <div markdown="1">
