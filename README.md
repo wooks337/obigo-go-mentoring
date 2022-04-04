@@ -14,7 +14,7 @@ Mobility Service 3 team golang study space
 ## 멘토링 커리큘럼
 **1주차** 
 ```
-- olang에서의 객체지향 / 포인터 / 참조 개념 (JAVA 와 비교해서 어떤것들이 다른지)
+- golang에서의 객체지향 / 포인터 / 참조 개념 (JAVA 와 비교해서 어떤것들이 다른지)
 - golang 환경구성 / 패키지구성 / IDE 셋팅
 - golang  스터디
     - 변수
@@ -88,3 +88,4 @@ Mobility Service 3 team golang study space
 - golang 강좌 & gorilla/mux 강좌 채널 : [https://www.youtube.com/channel/UCZp_ftx6UB_32VfVmlS3o_A](https://www.youtube.com/channel/UCZp_ftx6UB_32VfVmlS3o_A)
     - golang sample: [https://github.com/tuckersGo/musthaveGo](https://github.com/tuckersGo/musthaveGo)
     - goalng web sample: [https://github.com/tuckersGo/goWeb](https://github.com/tuckersGo/goWeb)
+    
