@@ -7,11 +7,16 @@ Mobility Service 3 team golang study space
 ```
 - Marty : 멘토 
 - Jamie : 멘티
+- Max   : 멘티
 ```
 ------------
 
 
 ## 멘토링 커리큘럼
+<details>
+<summary>일정</summary>
+<div markdown="1">
+
 **1주차** 
 ```
 - golang에서의 객체지향 / 포인터 / 참조 개념 (JAVA 와 비교해서 어떤것들이 다른지)
@@ -73,6 +78,10 @@ Mobility Service 3 team golang study space
 - golang webserver - 로그인/로그아웃 기능 만들기
 ```
 
+</div>
+</details>
+
+
 ------------
 ## References
 
@@ -88,4 +97,5 @@ Mobility Service 3 team golang study space
 - golang 강좌 & gorilla/mux 강좌 채널 : [https://www.youtube.com/channel/UCZp_ftx6UB_32VfVmlS3o_A](https://www.youtube.com/channel/UCZp_ftx6UB_32VfVmlS3o_A)
     - golang sample: [https://github.com/tuckersGo/musthaveGo](https://github.com/tuckersGo/musthaveGo)
     - goalng web sample: [https://github.com/tuckersGo/goWeb](https://github.com/tuckersGo/goWeb)
+- B/E 로드맵 가이드 :  https://velog.io/@geeneve/2021-%EB%B0%B1%EC%97%94%EB%93%9C-%EA%B0%9C%EB%B0%9C%EC%9E%90-%EB%A1%9C%EB%93%9C%EB%A7%B5
     
