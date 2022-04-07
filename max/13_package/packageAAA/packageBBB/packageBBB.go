@@ -1,0 +1,4 @@
+package packageBBB
+
+func PackAAABBB() {
+}
