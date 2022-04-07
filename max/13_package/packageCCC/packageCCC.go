@@ -1,0 +1,4 @@
+package packageCCC
+
+func PackCCC() {
+}
