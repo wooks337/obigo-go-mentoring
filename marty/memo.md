@@ -25,3 +25,4 @@
     - GitToolBox    :  기본적인 git 기능 편리하게 인터페이스 적용
 - Rainbow Brackets  :  {}, (), 개행 구분 플러그인 
 - Toml  : toml 환경변수 invalid 체크
+- Progress : 다양한 progress UI 제공 (취향대로 선택)
