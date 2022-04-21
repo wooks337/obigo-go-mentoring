@@ -1,0 +1,654 @@
+@startuml
+namespace handlers {
+    class LogFormatterParams << (S,Aquamarine) >> {
+        + Request *http.Request
+        + URL url.URL
+        + TimeStamp time.Time
+        + StatusCode int
+        + Size int
+
+    }
+    class MethodHandler << (S,Aquamarine) >> {
+        + ServeHTTP(w http.ResponseWriter, req *http.Request) 
+
+    }
+    interface RecoveryHandlerLogger  {
+        + Println( ...<font color=blue>interface</font>{}) 
+
+    }
+    class canonical << (S,Aquamarine) >> {
+        - h http.Handler
+        - domain string
+        - code int
+
+        + ServeHTTP(w http.ResponseWriter, r *http.Request) 
+
+    }
+    class compressResponseWriter << (S,Aquamarine) >> {
+        - compressor io.Writer
+        - w http.ResponseWriter
+
+        + WriteHeader(c int) 
+        + Write(b []byte) (int, error)
+        + ReadFrom(r io.Reader) (int64, error)
+        + Flush() 
+
+    }
+    class cors << (S,Aquamarine) >> {
+        - h http.Handler
+        - allowedHeaders []string
+        - allowedMethods []string
+        - allowedOrigins []string
+        - allowedOriginValidator OriginValidator
+        - exposedHeaders []string
+        - maxAge int
+        - ignoreOptions bool
+        - allowCredentials bool
+        - optionStatusCode int
+
+        - isOriginAllowed(origin string) bool
+        - isMatch(needle string, haystack []string) bool
+
+        + ServeHTTP(w http.ResponseWriter, r *http.Request) 
+
+    }
+    interface flusher  {
+        + Flush() error
+
+    }
+    class handlers.CORSOption << (T, #FF7700) >>  {
+    }
+    class handlers.LogFormatter << (T, #FF7700) >>  {
+    }
+    class handlers.MethodHandler << (T, #FF7700) >>  {
+    }
+    class handlers.OriginValidator << (T, #FF7700) >>  {
+    }
+    class handlers.RecoveryOption << (T, #FF7700) >>  {
+    }
+    class loggingHandler << (S,Aquamarine) >> {
+        - writer io.Writer
+        - handler http.Handler
+        - formatter LogFormatter
+
+        + ServeHTTP(w http.ResponseWriter, req *http.Request) 
+
+    }
+    class recoveryHandler << (S,Aquamarine) >> {
+        - handler http.Handler
+        - logger RecoveryHandlerLogger
+        - printStack bool
+
+        - log(v ...<font color=blue>interface</font>{}) 
+
+        + ServeHTTP(w http.ResponseWriter, req *http.Request) 
+
+    }
+    class responseLogger << (S,Aquamarine) >> {
+        - w http.ResponseWriter
+        - status int
+        - size int
+
+        + Write(b []byte) (int, error)
+        + WriteHeader(s int) 
+        + Status() int
+        + Size() int
+        + Hijack() (net.Conn, *bufio.ReadWriter, error)
+
+    }
+    class "<font color=blue>func</font>(http.Handler) " as fontcolorbluefuncfonthttpHandler {
+        'This class was created so that we can correctly have an alias pointing to this name. Since it contains dots that can break namespaces
+    }
+    class "<font color=blue>func</font>(io.Writer, LogFormatterParams) " as fontcolorbluefuncfontioWriterLogFormatterParams {
+        'This class was created so that we can correctly have an alias pointing to this name. Since it contains dots that can break namespaces
+    }
+    class "<font color=blue>map</font>[string]http.Handler" as fontcolorbluemapfontstringhttpHandler {
+        'This class was created so that we can correctly have an alias pointing to this name. Since it contains dots that can break namespaces
+    }
+}
+
+
+namespace mux {
+    class MatcherFunc << (S,Aquamarine) >> {
+        + Match(r *http.Request, match *RouteMatch) bool
+
+    }
+    class MiddlewareFunc << (S,Aquamarine) >> {
+        + Middleware(handler http.Handler) http.Handler
+
+    }
+    class Route << (S,Aquamarine) >> {
+        - handler http.Handler
+        - buildOnly bool
+        - name string
+        - err error
+        - namedRoutes <font color=blue>map</font>[string]*Route
+
+        - addMatcher(m matcher) *Route
+        - addRegexpMatcher(tpl string, typ regexpType) error
+        - prepareVars(pairs ...string) (<font color=blue>map</font>[string]string, error)
+        - buildVars(m <font color=blue>map</font>[string]string) <font color=blue>map</font>[string]string
+
+        + SkipClean() bool
+        + Match(req *http.Request, match *RouteMatch) bool
+        + GetError() error
+        + BuildOnly() *Route
+        + Handler(handler http.Handler) *Route
+        + HandlerFunc(f <font color=blue>func</font>(http.ResponseWriter, *http.Request) ) *Route
+        + GetHandler() http.Handler
+        + Name(name string) *Route
+        + GetName() string
+        + Headers(pairs ...string) *Route
+        + HeadersRegexp(pairs ...string) *Route
+        + Host(tpl string) *Route
+        + MatcherFunc(f MatcherFunc) *Route
+        + Methods(methods ...string) *Route
+        + Path(tpl string) *Route
+        + PathPrefix(tpl string) *Route
+        + Queries(pairs ...string) *Route
+        + Schemes(schemes ...string) *Route
+        + BuildVarsFunc(f BuildVarsFunc) *Route
+        + Subrouter() *Router
+        + URL(pairs ...string) (*url.URL, error)
+        + URLHost(pairs ...string) (*url.URL, error)
+        + URLPath(pairs ...string) (*url.URL, error)
+        + GetPathTemplate() (string, error)
+        + GetPathRegexp() (string, error)
+        + GetQueriesRegexp() ([]string, error)
+        + GetQueriesTemplates() ([]string, error)
+        + GetMethods() ([]string, error)
+        + GetHostTemplate() (string, error)
+
+    }
+    class RouteMatch << (S,Aquamarine) >> {
+        + Route *Route
+        + Handler http.Handler
+        + Vars <font color=blue>map</font>[string]string
+        + MatchErr error
+
+    }
+    class Router << (S,Aquamarine) >> {
+        - routes []*Route
+        - namedRoutes <font color=blue>map</font>[string]*Route
+        - middlewares []middleware
+
+        + NotFoundHandler http.Handler
+        + MethodNotAllowedHandler http.Handler
+        + KeepContext bool
+
+        - useInterface(mw middleware) 
+        - walk(walkFn WalkFunc, ancestors []*Route) error
+
+        + Use(mwf ...MiddlewareFunc) 
+        + Match(req *http.Request, match *RouteMatch) bool
+        + ServeHTTP(w http.ResponseWriter, req *http.Request) 
+        + Get(name string) *Route
+        + GetRoute(name string) *Route
+        + StrictSlash(value bool) *Router
+        + SkipClean(value bool) *Router
+        + UseEncodedPath() *Router
+        + NewRoute() *Route
+        + Name(name string) *Route
+        + Handle(path string, handler http.Handler) *Route
+        + HandleFunc(path string, f <font color=blue>func</font>(http.ResponseWriter, *http.Request) ) *Route
+        + Headers(pairs ...string) *Route
+        + Host(tpl string) *Route
+        + MatcherFunc(f MatcherFunc) *Route
+        + Methods(methods ...string) *Route
+        + Path(tpl string) *Route
+        + PathPrefix(tpl string) *Route
+        + Queries(pairs ...string) *Route
+        + Schemes(schemes ...string) *Route
+        + BuildVarsFunc(f BuildVarsFunc) *Route
+        + Walk(walkFn WalkFunc) error
+
+    }
+    class headerMatcher << (S,Aquamarine) >> {
+        + Match(r *http.Request, match *RouteMatch) bool
+
+    }
+    class headerRegexMatcher << (S,Aquamarine) >> {
+        + Match(r *http.Request, match *RouteMatch) bool
+
+    }
+    interface matcher  {
+        + Match( *http.Request,  *RouteMatch) bool
+
+    }
+    class methodMatcher << (S,Aquamarine) >> {
+        + Match(r *http.Request, match *RouteMatch) bool
+
+    }
+    interface middleware  {
+        + Middleware(handler http.Handler) http.Handler
+
+    }
+    class mux.BuildVarsFunc << (T, #FF7700) >>  {
+    }
+    class mux.MatcherFunc << (T, #FF7700) >>  {
+    }
+    class mux.MiddlewareFunc << (T, #FF7700) >>  {
+    }
+    class mux.WalkFunc << (T, #FF7700) >>  {
+    }
+    class mux.contextKey << (T, #FF7700) >>  {
+    }
+    class mux.headerMatcher << (T, #FF7700) >>  {
+    }
+    class mux.headerRegexMatcher << (T, #FF7700) >>  {
+    }
+    class mux.methodMatcher << (T, #FF7700) >>  {
+    }
+    class mux.regexpType << (T, #FF7700) >>  {
+    }
+    class mux.schemeMatcher << (T, #FF7700) >>  {
+    }
+    class routeConf << (S,Aquamarine) >> {
+        - useEncodedPath bool
+        - strictSlash bool
+        - skipClean bool
+        - regexp routeRegexpGroup
+        - matchers []matcher
+        - buildScheme string
+        - buildVarsFunc BuildVarsFunc
+
+    }
+    class routeRegexp << (S,Aquamarine) >> {
+        - template string
+        - regexpType regexpType
+        - options routeRegexpOptions
+        - regexp *regexp.Regexp
+        - reverse string
+        - varsN []string
+        - varsR []*regexp.Regexp
+        - wildcardHostPort bool
+
+        - url(values <font color=blue>map</font>[string]string) (string, error)
+        - getURLQuery(req *http.Request) string
+        - matchQueryString(req *http.Request) bool
+
+        + Match(req *http.Request, match *RouteMatch) bool
+
+    }
+    class routeRegexpGroup << (S,Aquamarine) >> {
+        - host *routeRegexp
+        - path *routeRegexp
+        - queries []*routeRegexp
+
+        - setMatch(req *http.Request, m *RouteMatch, r *Route) 
+
+    }
+    class routeRegexpOptions << (S,Aquamarine) >> {
+        - strictSlash bool
+        - useEncodedPath bool
+
+    }
+    class schemeMatcher << (S,Aquamarine) >> {
+        + Match(r *http.Request, match *RouteMatch) bool
+
+    }
+    class "<font color=blue>func</font>(http.Handler) http.Handler" as fontcolorbluefuncfonthttpHandlerhttpHandler {
+        'This class was created so that we can correctly have an alias pointing to this name. Since it contains dots that can break namespaces
+    }
+    class "<font color=blue>func</font>(*http.Request, *RouteMatch) bool" as fontcolorbluefuncfonthttpRequestRouteMatchbool {
+        'This class was created so that we can correctly have an alias pointing to this name. Since it contains dots that can break namespaces
+    }
+    class "<font color=blue>map</font>[string]*regexp.Regexp" as fontcolorbluemapfontstringregexpRegexp {
+        'This class was created so that we can correctly have an alias pointing to this name. Since it contains dots that can break namespaces
+    }
+}
+"mux.routeConf" *-- "mux.Route"
+"mux.routeConf" *-- "mux.Router"
+
+"mux.matcher" <|-- "mux.MatcherFunc"
+"mux.middleware" <|-- "mux.MiddlewareFunc"
+"mux.matcher" <|-- "mux.Route"
+"mux.matcher" <|-- "mux.Router"
+"mux.matcher" <|-- "mux.headerMatcher"
+"mux.matcher" <|-- "mux.headerRegexMatcher"
+"mux.matcher" <|-- "mux.methodMatcher"
+"mux.matcher" <|-- "mux.routeRegexp"
+"mux.matcher" <|-- "mux.schemeMatcher"
+
+namespace schema {
+    class ConversionError << (S,Aquamarine) >> {
+        + Key string
+        + Type reflect.Type
+        + Index int
+        + Err error
+
+        + Error() string
+
+    }
+    class Decoder << (S,Aquamarine) >> {
+        - cache *cache
+        - zeroEmpty bool
+        - ignoreUnknownKeys bool
+
+        - checkRequired(t reflect.Type, src <font color=blue>map</font>[string][]string) MultiError
+        - findRequiredFields(t reflect.Type, canonicalPrefix string, searchPrefix string) (<font color=blue>map</font>[string][]fieldWithPrefix, MultiError)
+        - decode(v reflect.Value, path string, parts []pathPart, values []string) error
+
+        + SetAliasTag(tag string) 
+        + ZeroEmpty(z bool) 
+        + IgnoreUnknownKeys(i bool) 
+        + RegisterConverter(value <font color=blue>interface</font>{}, converterFunc Converter) 
+        + Decode(dst <font color=blue>interface</font>{}, src <font color=blue>map</font>[string][]string) error
+
+    }
+    class EmptyFieldError << (S,Aquamarine) >> {
+        + Key string
+
+        + Error() string
+
+    }
+    class Encoder << (S,Aquamarine) >> {
+        - cache *cache
+        - regenc <font color=blue>map</font>[reflect.Type]encoderFunc
+
+        - encode(v reflect.Value, dst <font color=blue>map</font>[string][]string) error
+        - hasCustomEncoder(t reflect.Type) bool
+
+        + Encode(src <font color=blue>interface</font>{}, dst <font color=blue>map</font>[string][]string) error
+        + RegisterEncoder(value <font color=blue>interface</font>{}, encoder <font color=blue>func</font>(reflect.Value) string) 
+        + SetAliasTag(tag string) 
+
+    }
+    class MultiError << (S,Aquamarine) >> {
+        - merge(errors MultiError) 
+
+        + Error() string
+
+    }
+    class UnknownKeyError << (S,Aquamarine) >> {
+        + Key string
+
+        + Error() string
+
+    }
+    class cache << (S,Aquamarine) >> {
+        - l sync.RWMutex
+        - m <font color=blue>map</font>[reflect.Type]*structInfo
+        - regconv <font color=blue>map</font>[reflect.Type]Converter
+        - tag string
+
+        - registerConverter(value <font color=blue>interface</font>{}, converterFunc Converter) 
+        - parsePath(p string, t reflect.Type) ([]pathPart, error)
+        - get(t reflect.Type) *structInfo
+        - create(t reflect.Type, parentAlias string) *structInfo
+        - createField(field reflect.StructField, parentAlias string) *fieldInfo
+        - converter(t reflect.Type) Converter
+
+    }
+    class fieldInfo << (S,Aquamarine) >> {
+        - typ reflect.Type
+        - name string
+        - alias string
+        - canonicalAlias string
+        - unmarshalerInfo unmarshaler
+        - isSliceOfStructs bool
+        - isAnonymous bool
+        - isRequired bool
+
+        - paths(prefix string) []string
+
+    }
+    class fieldWithPrefix << (S,Aquamarine) >> {
+        - prefix string
+
+    }
+    class pathPart << (S,Aquamarine) >> {
+        - field *fieldInfo
+        - path []string
+        - index int
+
+    }
+    class schema.Converter << (T, #FF7700) >>  {
+    }
+    class schema.MultiError << (T, #FF7700) >>  {
+    }
+    class schema.encoderFunc << (T, #FF7700) >>  {
+    }
+    class schema.tagOptions << (T, #FF7700) >>  {
+    }
+    class structInfo << (S,Aquamarine) >> {
+        - fields []*fieldInfo
+
+        - get(alias string) *fieldInfo
+
+    }
+    class tagOptions << (S,Aquamarine) >> {
+        + Contains(option string) bool
+
+    }
+    class unmarshaler << (S,Aquamarine) >> {
+        + Unmarshaler encoding.TextUnmarshaler
+        + IsValid bool
+        + IsPtr bool
+        + IsSliceElement bool
+        + IsSliceElementPtr bool
+
+    }
+    class "<font color=blue>func</font>(reflect.Value) string" as fontcolorbluefuncfontreflectValuestring {
+        'This class was created so that we can correctly have an alias pointing to this name. Since it contains dots that can break namespaces
+    }
+    class "<font color=blue>func</font>(string) reflect.Value" as fontcolorbluefuncfontstringreflectValue {
+        'This class was created so that we can correctly have an alias pointing to this name. Since it contains dots that can break namespaces
+    }
+}
+"schema.fieldInfo" *-- "schema.fieldWithPrefix"
+
+
+namespace securecookie {
+    interface Codec  {
+        + Encode(name string, value <font color=blue>interface</font>{}) (string, error)
+        + Decode(name string, value string, dst <font color=blue>interface</font>{}) error
+
+    }
+    class Cookie << (S,Aquamarine) >> {
+        + B bool
+        + I int
+        + S string
+
+    }
+    interface Error  {
+        + IsUsage() bool
+        + IsDecode() bool
+        + IsInternal() bool
+        + Cause() error
+
+    }
+    class GobEncoder << (S,Aquamarine) >> {
+        + Serialize(src <font color=blue>interface</font>{}) ([]byte, error)
+        + Deserialize(src []byte, dst <font color=blue>interface</font>{}) error
+
+    }
+    class JSONEncoder << (S,Aquamarine) >> {
+        + Serialize(src <font color=blue>interface</font>{}) ([]byte, error)
+        + Deserialize(src []byte, dst <font color=blue>interface</font>{}) error
+
+    }
+    class MultiError << (S,Aquamarine) >> {
+        - any(pred <font color=blue>func</font>(Error) bool) bool
+
+        + IsUsage() bool
+        + IsDecode() bool
+        + IsInternal() bool
+        + Cause() error
+        + Error() string
+
+    }
+    class NopEncoder << (S,Aquamarine) >> {
+        + Serialize(src <font color=blue>interface</font>{}) ([]byte, error)
+        + Deserialize(src []byte, dst <font color=blue>interface</font>{}) error
+
+    }
+    class SecureCookie << (S,Aquamarine) >> {
+        - hashKey []byte
+        - hashFunc <font color=blue>func</font>() hash.Hash
+        - blockKey []byte
+        - block cipher.Block
+        - maxLength int
+        - maxAge int64
+        - minAge int64
+        - err error
+        - sz Serializer
+        - timeFunc <font color=blue>func</font>() int64
+
+        - timestamp() int64
+
+        + MaxLength(value int) *SecureCookie
+        + MaxAge(value int) *SecureCookie
+        + MinAge(value int) *SecureCookie
+        + HashFunc(f <font color=blue>func</font>() hash.Hash) *SecureCookie
+        + BlockFunc(f <font color=blue>func</font>([]byte) (cipher.Block, error)) *SecureCookie
+        + SetSerializer(sz Serializer) *SecureCookie
+        + Encode(name string, value <font color=blue>interface</font>{}) (string, error)
+        + Decode(name string, value string, dst <font color=blue>interface</font>{}) error
+
+    }
+    interface Serializer  {
+        + Serialize(src <font color=blue>interface</font>{}) ([]byte, error)
+        + Deserialize(src []byte, dst <font color=blue>interface</font>{}) error
+
+    }
+    class cookieError << (S,Aquamarine) >> {
+        - typ errorType
+        - msg string
+        - cause error
+
+        + IsUsage() bool
+        + IsDecode() bool
+        + IsInternal() bool
+        + Cause() error
+        + Error() string
+
+    }
+    class securecookie.MultiError << (T, #FF7700) >>  {
+    }
+    class securecookie.errorType << (T, #FF7700) >>  {
+    }
+}
+"__builtin__.error" *-- "securecookie.Error"
+
+"securecookie.Serializer" <|-- "securecookie.GobEncoder"
+"securecookie.Serializer" <|-- "securecookie.JSONEncoder"
+"securecookie.Error" <|-- "securecookie.MultiError"
+"securecookie.Serializer" <|-- "securecookie.NopEncoder"
+"securecookie.Codec" <|-- "securecookie.SecureCookie"
+"securecookie.Error" <|-- "securecookie.cookieError"
+
+namespace sessions {
+    class CookieStore << (S,Aquamarine) >> {
+        + Codecs []securecookie.Codec
+        + Options *Options
+
+        + Get(r *http.Request, name string) (*Session, error)
+        + New(r *http.Request, name string) (*Session, error)
+        + Save(r *http.Request, w http.ResponseWriter, session *Session) error
+        + MaxAge(age int) 
+
+    }
+    class FilesystemStore << (S,Aquamarine) >> {
+        - path string
+
+        + Codecs []securecookie.Codec
+        + Options *Options
+
+        - save(session *Session) error
+        - load(session *Session) error
+        - erase(session *Session) error
+
+        + MaxLength(l int) 
+        + Get(r *http.Request, name string) (*Session, error)
+        + New(r *http.Request, name string) (*Session, error)
+        + Save(r *http.Request, w http.ResponseWriter, session *Session) error
+        + MaxAge(age int) 
+
+    }
+    class MultiError << (S,Aquamarine) >> {
+        + Error() string
+
+    }
+    class Options << (S,Aquamarine) >> {
+        + Path string
+        + Domain string
+        + MaxAge int
+        + Secure bool
+        + HttpOnly bool
+        + Path string
+        + Domain string
+        + MaxAge int
+        + Secure bool
+        + HttpOnly bool
+        + SameSite http.SameSite
+
+    }
+    class Registry << (S,Aquamarine) >> {
+        - request *http.Request
+        - sessions <font color=blue>map</font>[string]sessionInfo
+
+        + Get(store Store, name string) (*Session, error)
+        + Save(w http.ResponseWriter) error
+
+    }
+    class Session << (S,Aquamarine) >> {
+        - store Store
+        - name string
+
+        + ID string
+        + Values <font color=blue>map</font>[<font color=blue>interface</font>{}]<font color=blue>interface</font>{}
+        + Options *Options
+        + IsNew bool
+
+        + Flashes(vars ...string) []<font color=blue>interface</font>{}
+        + AddFlash(value <font color=blue>interface</font>{}, vars ...string) 
+        + Save(r *http.Request, w http.ResponseWriter) error
+        + Name() string
+        + Store() Store
+
+    }
+    interface Store  {
+        + Get(r *http.Request, name string) (*Session, error)
+        + New(r *http.Request, name string) (*Session, error)
+        + Save(r *http.Request, w http.ResponseWriter, s *Session) error
+
+    }
+    class sessionInfo << (S,Aquamarine) >> {
+        - s *Session
+        - e error
+
+    }
+    class sessions.MultiError << (T, #FF7700) >>  {
+    }
+    class sessions.contextKey << (T, #FF7700) >>  {
+    }
+}
+
+"sessions.Store" <|-- "sessions.CookieStore"
+"sessions.Store" <|-- "sessions.FilesystemStore"
+
+"__builtin__.<font color=blue>map</font>[string]error" #.. "schema.MultiError"
+"__builtin__.<font color=blue>map</font>[string]string" #.. "mux.headerMatcher"
+"__builtin__.[]error" #.. "securecookie.MultiError"
+"__builtin__.[]error" #.. "sessions.MultiError"
+"__builtin__.[]string" #.. "mux.methodMatcher"
+"__builtin__.[]string" #.. "mux.schemeMatcher"
+"__builtin__.[]string" #.. "schema.tagOptions"
+"__builtin__.int" #.. "mux.contextKey"
+"__builtin__.int" #.. "mux.regexpType"
+"__builtin__.int" #.. "securecookie.errorType"
+"__builtin__.int" #.. "sessions.contextKey"
+"handlers.<font color=blue>func</font>(*cors) error" #.. "handlers.CORSOption"
+"handlers.fontcolorbluefuncfonthttpHandler" #.. "handlers.RecoveryOption"
+"handlers.fontcolorbluefuncfontioWriterLogFormatterParams" #.. "handlers.LogFormatter"
+"handlers.<font color=blue>func</font>(string) bool" #.. "handlers.OriginValidator"
+"handlers.fontcolorbluemapfontstringhttpHandler" #.. "handlers.MethodHandler"
+"mux.<font color=blue>func</font>(*Route, *Router, []*Route) error" #.. "mux.WalkFunc"
+"mux.fontcolorbluefuncfonthttpRequestRouteMatchbool" #.. "mux.MatcherFunc"
+"mux.<font color=blue>func</font>(<font color=blue>map</font>[string]string) <font color=blue>map</font>[string]string" #.. "mux.BuildVarsFunc"
+"mux.fontcolorbluefuncfonthttpHandlerhttpHandler" #.. "mux.MiddlewareFunc"
+"mux.fontcolorbluemapfontstringregexpRegexp" #.. "mux.headerRegexMatcher"
+"schema.fontcolorbluefuncfontreflectValuestring" #.. "schema.encoderFunc"
+"schema.fontcolorbluefuncfontstringreflectValue" #.. "schema.Converter"
+@enduml

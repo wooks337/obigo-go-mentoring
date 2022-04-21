@@ -13,6 +13,22 @@
 - https://codesk.tistory.com/120
 
 
+### UML - goplantuml
+- 설치
+```
+go get github.com/jfeliu007/goplantuml/parser 
+go get github.com/jfeliu007/goplantuml/cmd/goplantuml
+cd $GOPATH/src/github.com/jfeliu007/goplantuml 
+go install ./...
+```
+- puml 생성 
+```
+goplantuml [-recursive] path/to/gofiles path/to/gofiles2 > outfile.puml
+```
+
+
+
+
 ## Goland plugin 
 - Theme
     - Atom material icons
