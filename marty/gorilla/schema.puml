@@ -1,0 +1,135 @@
+@startuml
+namespace schema {
+    class ConversionError << (S,Aquamarine) >> {
+        + Key string
+        + Type reflect.Type
+        + Index int
+        + Err error
+
+        + Error() string
+
+    }
+    class Decoder << (S,Aquamarine) >> {
+        - cache *cache
+        - zeroEmpty bool
+        - ignoreUnknownKeys bool
+
+        - checkRequired(t reflect.Type, src <font color=blue>map</font>[string][]string) MultiError
+        - findRequiredFields(t reflect.Type, canonicalPrefix string, searchPrefix string) (<font color=blue>map</font>[string][]fieldWithPrefix, MultiError)
+        - decode(v reflect.Value, path string, parts []pathPart, values []string) error
+
+        + SetAliasTag(tag string) 
+        + ZeroEmpty(z bool) 
+        + IgnoreUnknownKeys(i bool) 
+        + RegisterConverter(value <font color=blue>interface</font>{}, converterFunc Converter) 
+        + Decode(dst <font color=blue>interface</font>{}, src <font color=blue>map</font>[string][]string) error
+
+    }
+    class EmptyFieldError << (S,Aquamarine) >> {
+        + Key string
+
+        + Error() string
+
+    }
+    class Encoder << (S,Aquamarine) >> {
+        - cache *cache
+        - regenc <font color=blue>map</font>[reflect.Type]encoderFunc
+
+        - encode(v reflect.Value, dst <font color=blue>map</font>[string][]string) error
+        - hasCustomEncoder(t reflect.Type) bool
+
+        + Encode(src <font color=blue>interface</font>{}, dst <font color=blue>map</font>[string][]string) error
+        + RegisterEncoder(value <font color=blue>interface</font>{}, encoder <font color=blue>func</font>(reflect.Value) string) 
+        + SetAliasTag(tag string) 
+
+    }
+    class MultiError << (S,Aquamarine) >> {
+        - merge(errors MultiError) 
+
+        + Error() string
+
+    }
+    class UnknownKeyError << (S,Aquamarine) >> {
+        + Key string
+
+        + Error() string
+
+    }
+    class cache << (S,Aquamarine) >> {
+        - l sync.RWMutex
+        - m <font color=blue>map</font>[reflect.Type]*structInfo
+        - regconv <font color=blue>map</font>[reflect.Type]Converter
+        - tag string
+
+        - registerConverter(value <font color=blue>interface</font>{}, converterFunc Converter) 
+        - parsePath(p string, t reflect.Type) ([]pathPart, error)
+        - get(t reflect.Type) *structInfo
+        - create(t reflect.Type, parentAlias string) *structInfo
+        - createField(field reflect.StructField, parentAlias string) *fieldInfo
+        - converter(t reflect.Type) Converter
+
+    }
+    class fieldInfo << (S,Aquamarine) >> {
+        - typ reflect.Type
+        - name string
+        - alias string
+        - canonicalAlias string
+        - unmarshalerInfo unmarshaler
+        - isSliceOfStructs bool
+        - isAnonymous bool
+        - isRequired bool
+
+        - paths(prefix string) []string
+
+    }
+    class fieldWithPrefix << (S,Aquamarine) >> {
+        - prefix string
+
+    }
+    class pathPart << (S,Aquamarine) >> {
+        - field *fieldInfo
+        - path []string
+        - index int
+
+    }
+    class schema.Converter << (T, #FF7700) >>  {
+    }
+    class schema.MultiError << (T, #FF7700) >>  {
+    }
+    class schema.encoderFunc << (T, #FF7700) >>  {
+    }
+    class schema.tagOptions << (T, #FF7700) >>  {
+    }
+    class structInfo << (S,Aquamarine) >> {
+        - fields []*fieldInfo
+
+        - get(alias string) *fieldInfo
+
+    }
+    class tagOptions << (S,Aquamarine) >> {
+        + Contains(option string) bool
+
+    }
+    class unmarshaler << (S,Aquamarine) >> {
+        + Unmarshaler encoding.TextUnmarshaler
+        + IsValid bool
+        + IsPtr bool
+        + IsSliceElement bool
+        + IsSliceElementPtr bool
+
+    }
+    class "<font color=blue>func</font>(reflect.Value) string" as fontcolorbluefuncfontreflectValuestring {
+        'This class was created so that we can correctly have an alias pointing to this name. Since it contains dots that can break namespaces
+    }
+    class "<font color=blue>func</font>(string) reflect.Value" as fontcolorbluefuncfontstringreflectValue {
+        'This class was created so that we can correctly have an alias pointing to this name. Since it contains dots that can break namespaces
+    }
+}
+"schema.fieldInfo" *-- "schema.fieldWithPrefix"
+
+
+"__builtin__.<font color=blue>map</font>[string]error" #.. "schema.MultiError"
+"__builtin__.[]string" #.. "schema.tagOptions"
+"schema.fontcolorbluefuncfontreflectValuestring" #.. "schema.encoderFunc"
+"schema.fontcolorbluefuncfontstringreflectValue" #.. "schema.Converter"
+@enduml

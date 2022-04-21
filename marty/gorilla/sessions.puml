@@ -1,0 +1,94 @@
+@startuml
+namespace sessions {
+    class CookieStore << (S,Aquamarine) >> {
+        + Codecs []securecookie.Codec
+        + Options *Options
+
+        + Get(r *http.Request, name string) (*Session, error)
+        + New(r *http.Request, name string) (*Session, error)
+        + Save(r *http.Request, w http.ResponseWriter, session *Session) error
+        + MaxAge(age int) 
+
+    }
+    class FilesystemStore << (S,Aquamarine) >> {
+        - path string
+
+        + Codecs []securecookie.Codec
+        + Options *Options
+
+        - save(session *Session) error
+        - load(session *Session) error
+        - erase(session *Session) error
+
+        + MaxLength(l int) 
+        + Get(r *http.Request, name string) (*Session, error)
+        + New(r *http.Request, name string) (*Session, error)
+        + Save(r *http.Request, w http.ResponseWriter, session *Session) error
+        + MaxAge(age int) 
+
+    }
+    class MultiError << (S,Aquamarine) >> {
+        + Error() string
+
+    }
+    class Options << (S,Aquamarine) >> {
+        + Path string
+        + Domain string
+        + MaxAge int
+        + Secure bool
+        + HttpOnly bool
+        + Path string
+        + Domain string
+        + MaxAge int
+        + Secure bool
+        + HttpOnly bool
+        + SameSite http.SameSite
+
+    }
+    class Registry << (S,Aquamarine) >> {
+        - request *http.Request
+        - sessions <font color=blue>map</font>[string]sessionInfo
+
+        + Get(store Store, name string) (*Session, error)
+        + Save(w http.ResponseWriter) error
+
+    }
+    class Session << (S,Aquamarine) >> {
+        - store Store
+        - name string
+
+        + ID string
+        + Values <font color=blue>map</font>[<font color=blue>interface</font>{}]<font color=blue>interface</font>{}
+        + Options *Options
+        + IsNew bool
+
+        + Flashes(vars ...string) []<font color=blue>interface</font>{}
+        + AddFlash(value <font color=blue>interface</font>{}, vars ...string) 
+        + Save(r *http.Request, w http.ResponseWriter) error
+        + Name() string
+        + Store() Store
+
+    }
+    interface Store  {
+        + Get(r *http.Request, name string) (*Session, error)
+        + New(r *http.Request, name string) (*Session, error)
+        + Save(r *http.Request, w http.ResponseWriter, s *Session) error
+
+    }
+    class sessionInfo << (S,Aquamarine) >> {
+        - s *Session
+        - e error
+
+    }
+    class sessions.MultiError << (T, #FF7700) >>  {
+    }
+    class sessions.contextKey << (T, #FF7700) >>  {
+    }
+}
+
+"sessions.Store" <|-- "sessions.CookieStore"
+"sessions.Store" <|-- "sessions.FilesystemStore"
+
+"__builtin__.[]error" #.. "sessions.MultiError"
+"__builtin__.int" #.. "sessions.contextKey"
+@enduml

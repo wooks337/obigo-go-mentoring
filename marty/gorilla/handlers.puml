@@ -1,0 +1,116 @@
+@startuml
+namespace handlers {
+    class LogFormatterParams << (S,Aquamarine) >> {
+        + Request *http.Request
+        + URL url.URL
+        + TimeStamp time.Time
+        + StatusCode int
+        + Size int
+
+    }
+    class MethodHandler << (S,Aquamarine) >> {
+        + ServeHTTP(w http.ResponseWriter, req *http.Request) 
+
+    }
+    interface RecoveryHandlerLogger  {
+        + Println( ...<font color=blue>interface</font>{}) 
+
+    }
+    class canonical << (S,Aquamarine) >> {
+        - h http.Handler
+        - domain string
+        - code int
+
+        + ServeHTTP(w http.ResponseWriter, r *http.Request) 
+
+    }
+    class compressResponseWriter << (S,Aquamarine) >> {
+        - compressor io.Writer
+        - w http.ResponseWriter
+
+        + WriteHeader(c int) 
+        + Write(b []byte) (int, error)
+        + ReadFrom(r io.Reader) (int64, error)
+        + Flush() 
+
+    }
+    class cors << (S,Aquamarine) >> {
+        - h http.Handler
+        - allowedHeaders []string
+        - allowedMethods []string
+        - allowedOrigins []string
+        - allowedOriginValidator OriginValidator
+        - exposedHeaders []string
+        - maxAge int
+        - ignoreOptions bool
+        - allowCredentials bool
+        - optionStatusCode int
+
+        - isOriginAllowed(origin string) bool
+        - isMatch(needle string, haystack []string) bool
+
+        + ServeHTTP(w http.ResponseWriter, r *http.Request) 
+
+    }
+    interface flusher  {
+        + Flush() error
+
+    }
+    class handlers.CORSOption << (T, #FF7700) >>  {
+    }
+    class handlers.LogFormatter << (T, #FF7700) >>  {
+    }
+    class handlers.MethodHandler << (T, #FF7700) >>  {
+    }
+    class handlers.OriginValidator << (T, #FF7700) >>  {
+    }
+    class handlers.RecoveryOption << (T, #FF7700) >>  {
+    }
+    class loggingHandler << (S,Aquamarine) >> {
+        - writer io.Writer
+        - handler http.Handler
+        - formatter LogFormatter
+
+        + ServeHTTP(w http.ResponseWriter, req *http.Request) 
+
+    }
+    class recoveryHandler << (S,Aquamarine) >> {
+        - handler http.Handler
+        - logger RecoveryHandlerLogger
+        - printStack bool
+
+        - log(v ...<font color=blue>interface</font>{}) 
+
+        + ServeHTTP(w http.ResponseWriter, req *http.Request) 
+
+    }
+    class responseLogger << (S,Aquamarine) >> {
+        - w http.ResponseWriter
+        - status int
+        - size int
+
+        + Write(b []byte) (int, error)
+        + WriteHeader(s int) 
+        + Status() int
+        + Size() int
+        + Hijack() (net.Conn, *bufio.ReadWriter, error)
+
+    }
+    class "<font color=blue>func</font>(http.Handler) " as fontcolorbluefuncfonthttpHandler {
+        'This class was created so that we can correctly have an alias pointing to this name. Since it contains dots that can break namespaces
+    }
+    class "<font color=blue>func</font>(io.Writer, LogFormatterParams) " as fontcolorbluefuncfontioWriterLogFormatterParams {
+        'This class was created so that we can correctly have an alias pointing to this name. Since it contains dots that can break namespaces
+    }
+    class "<font color=blue>map</font>[string]http.Handler" as fontcolorbluemapfontstringhttpHandler {
+        'This class was created so that we can correctly have an alias pointing to this name. Since it contains dots that can break namespaces
+    }
+}
+
+
+"handlers.<font color=blue>func</font>(*cors) error" #.. "handlers.CORSOption"
+"handlers.fontcolorbluefuncfonthttpHandler" #.. "handlers.RecoveryOption"
+"handlers.fontcolorbluefuncfontioWriterLogFormatterParams" #.. "handlers.LogFormatter"
+"handlers.<font color=blue>func</font>(string) bool" #.. "handlers.OriginValidator"
+"handlers.fontcolorbluemapfontstringhttpHandler" #.. "handlers.MethodHandler"
+@enduml

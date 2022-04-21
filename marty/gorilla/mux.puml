@@ -1,0 +1,214 @@
+@startuml
+namespace mux {
+    class MatcherFunc << (S,Aquamarine) >> {
+        + Match(r *http.Request, match *RouteMatch) bool
+
+    }
+    class MiddlewareFunc << (S,Aquamarine) >> {
+        + Middleware(handler http.Handler) http.Handler
+
+    }
+    class Route << (S,Aquamarine) >> {
+        - handler http.Handler
+        - buildOnly bool
+        - name string
+        - err error
+        - namedRoutes <font color=blue>map</font>[string]*Route
+
+        - addMatcher(m matcher) *Route
+        - addRegexpMatcher(tpl string, typ regexpType) error
+        - prepareVars(pairs ...string) (<font color=blue>map</font>[string]string, error)
+        - buildVars(m <font color=blue>map</font>[string]string) <font color=blue>map</font>[string]string
+
+        + SkipClean() bool
+        + Match(req *http.Request, match *RouteMatch) bool
+        + GetError() error
+        + BuildOnly() *Route
+        + Handler(handler http.Handler) *Route
+        + HandlerFunc(f <font color=blue>func</font>(http.ResponseWriter, *http.Request) ) *Route
+        + GetHandler() http.Handler
+        + Name(name string) *Route
+        + GetName() string
+        + Headers(pairs ...string) *Route
+        + HeadersRegexp(pairs ...string) *Route
+        + Host(tpl string) *Route
+        + MatcherFunc(f MatcherFunc) *Route
+        + Methods(methods ...string) *Route
+        + Path(tpl string) *Route
+        + PathPrefix(tpl string) *Route
+        + Queries(pairs ...string) *Route
+        + Schemes(schemes ...string) *Route
+        + BuildVarsFunc(f BuildVarsFunc) *Route
+        + Subrouter() *Router
+        + URL(pairs ...string) (*url.URL, error)
+        + URLHost(pairs ...string) (*url.URL, error)
+        + URLPath(pairs ...string) (*url.URL, error)
+        + GetPathTemplate() (string, error)
+        + GetPathRegexp() (string, error)
+        + GetQueriesRegexp() ([]string, error)
+        + GetQueriesTemplates() ([]string, error)
+        + GetMethods() ([]string, error)
+        + GetHostTemplate() (string, error)
+
+    }
+    class RouteMatch << (S,Aquamarine) >> {
+        + Route *Route
+        + Handler http.Handler
+        + Vars <font color=blue>map</font>[string]string
+        + MatchErr error
+
+    }
+    class Router << (S,Aquamarine) >> {
+        - routes []*Route
+        - namedRoutes <font color=blue>map</font>[string]*Route
+        - middlewares []middleware
+
+        + NotFoundHandler http.Handler
+        + MethodNotAllowedHandler http.Handler
+        + KeepContext bool
+
+        - useInterface(mw middleware) 
+        - walk(walkFn WalkFunc, ancestors []*Route) error
+
+        + Use(mwf ...MiddlewareFunc) 
+        + Match(req *http.Request, match *RouteMatch) bool
+        + ServeHTTP(w http.ResponseWriter, req *http.Request) 
+        + Get(name string) *Route
+        + GetRoute(name string) *Route
+        + StrictSlash(value bool) *Router
+        + SkipClean(value bool) *Router
+        + UseEncodedPath() *Router
+        + NewRoute() *Route
+        + Name(name string) *Route
+        + Handle(path string, handler http.Handler) *Route
+        + HandleFunc(path string, f <font color=blue>func</font>(http.ResponseWriter, *http.Request) ) *Route
+        + Headers(pairs ...string) *Route
+        + Host(tpl string) *Route
+        + MatcherFunc(f MatcherFunc) *Route
+        + Methods(methods ...string) *Route
+        + Path(tpl string) *Route
+        + PathPrefix(tpl string) *Route
+        + Queries(pairs ...string) *Route
+        + Schemes(schemes ...string) *Route
+        + BuildVarsFunc(f BuildVarsFunc) *Route
+        + Walk(walkFn WalkFunc) error
+
+    }
+    class headerMatcher << (S,Aquamarine) >> {
+        + Match(r *http.Request, match *RouteMatch) bool
+
+    }
+    class headerRegexMatcher << (S,Aquamarine) >> {
+        + Match(r *http.Request, match *RouteMatch) bool
+
+    }
+    interface matcher  {
+        + Match( *http.Request,  *RouteMatch) bool
+
+    }
+    class methodMatcher << (S,Aquamarine) >> {
+        + Match(r *http.Request, match *RouteMatch) bool
+
+    }
+    interface middleware  {
+        + Middleware(handler http.Handler) http.Handler
+
+    }
+    class mux.BuildVarsFunc << (T, #FF7700) >>  {
+    }
+    class mux.MatcherFunc << (T, #FF7700) >>  {
+    }
+    class mux.MiddlewareFunc << (T, #FF7700) >>  {
+    }
+    class mux.WalkFunc << (T, #FF7700) >>  {
+    }
+    class mux.contextKey << (T, #FF7700) >>  {
+    }
+    class mux.headerMatcher << (T, #FF7700) >>  {
+    }
+    class mux.headerRegexMatcher << (T, #FF7700) >>  {
+    }
+    class mux.methodMatcher << (T, #FF7700) >>  {
+    }
+    class mux.regexpType << (T, #FF7700) >>  {
+    }
+    class mux.schemeMatcher << (T, #FF7700) >>  {
+    }
+    class routeConf << (S,Aquamarine) >> {
+        - useEncodedPath bool
+        - strictSlash bool
+        - skipClean bool
+        - regexp routeRegexpGroup
+        - matchers []matcher
+        - buildScheme string
+        - buildVarsFunc BuildVarsFunc
+
+    }
+    class routeRegexp << (S,Aquamarine) >> {
+        - template string
+        - regexpType regexpType
+        - options routeRegexpOptions
+        - regexp *regexp.Regexp
+        - reverse string
+        - varsN []string
+        - varsR []*regexp.Regexp
+        - wildcardHostPort bool
+
+        - url(values <font color=blue>map</font>[string]string) (string, error)
+        - getURLQuery(req *http.Request) string
+        - matchQueryString(req *http.Request) bool
+
+        + Match(req *http.Request, match *RouteMatch) bool
+
+    }
+    class routeRegexpGroup << (S,Aquamarine) >> {
+        - host *routeRegexp
+        - path *routeRegexp
+        - queries []*routeRegexp
+
+        - setMatch(req *http.Request, m *RouteMatch, r *Route) 
+
+    }
+    class routeRegexpOptions << (S,Aquamarine) >> {
+        - strictSlash bool
+        - useEncodedPath bool
+
+    }
+    class schemeMatcher << (S,Aquamarine) >> {
+        + Match(r *http.Request, match *RouteMatch) bool
+
+    }
+    class "<font color=blue>func</font>(http.Handler) http.Handler" as fontcolorbluefuncfonthttpHandlerhttpHandler {
+        'This class was created so that we can correctly have an alias pointing to this name. Since it contains dots that can break namespaces
+    }
+    class "<font color=blue>func</font>(*http.Request, *RouteMatch) bool" as fontcolorbluefuncfonthttpRequestRouteMatchbool {
+        'This class was created so that we can correctly have an alias pointing to this name. Since it contains dots that can break namespaces
+    }
+    class "<font color=blue>map</font>[string]*regexp.Regexp" as fontcolorbluemapfontstringregexpRegexp {
+        'This class was created so that we can correctly have an alias pointing to this name. Since it contains dots that can break namespaces
+    }
+}
+"mux.routeConf" *-- "mux.Route"
+"mux.routeConf" *-- "mux.Router"
+
+"mux.matcher" <|-- "mux.MatcherFunc"
+"mux.middleware" <|-- "mux.MiddlewareFunc"
+"mux.matcher" <|-- "mux.Route"
+"mux.matcher" <|-- "mux.Router"
+"mux.matcher" <|-- "mux.headerMatcher"
+"mux.matcher" <|-- "mux.headerRegexMatcher"
+"mux.matcher" <|-- "mux.methodMatcher"
+"mux.matcher" <|-- "mux.routeRegexp"
+"mux.matcher" <|-- "mux.schemeMatcher"
+
+"__builtin__.<font color=blue>map</font>[string]string" #.. "mux.headerMatcher"
+"__builtin__.[]string" #.. "mux.methodMatcher"
+"__builtin__.[]string" #.. "mux.schemeMatcher"
+"__builtin__.int" #.. "mux.contextKey"
+"__builtin__.int" #.. "mux.regexpType"
+"mux.<font color=blue>func</font>(*Route, *Router, []*Route) error" #.. "mux.WalkFunc"
+"mux.fontcolorbluefuncfonthttpRequestRouteMatchbool" #.. "mux.MatcherFunc"
+"mux.<font color=blue>func</font>(<font color=blue>map</font>[string]string) <font color=blue>map</font>[string]string" #.. "mux.BuildVarsFunc"
+"mux.fontcolorbluefuncfonthttpHandlerhttpHandler" #.. "mux.MiddlewareFunc"
+"mux.fontcolorbluemapfontstringregexpRegexp" #.. "mux.headerRegexMatcher"
+@enduml

@@ -1,0 +1,103 @@
+@startuml
+namespace securecookie {
+    interface Codec  {
+        + Encode(name string, value <font color=blue>interface</font>{}) (string, error)
+        + Decode(name string, value string, dst <font color=blue>interface</font>{}) error
+
+    }
+    class Cookie << (S,Aquamarine) >> {
+        + B bool
+        + I int
+        + S string
+
+    }
+    interface Error  {
+        + IsUsage() bool
+        + IsDecode() bool
+        + IsInternal() bool
+        + Cause() error
+
+    }
+    class GobEncoder << (S,Aquamarine) >> {
+        + Serialize(src <font color=blue>interface</font>{}) ([]byte, error)
+        + Deserialize(src []byte, dst <font color=blue>interface</font>{}) error
+
+    }
+    class JSONEncoder << (S,Aquamarine) >> {
+        + Serialize(src <font color=blue>interface</font>{}) ([]byte, error)
+        + Deserialize(src []byte, dst <font color=blue>interface</font>{}) error
+
+    }
+    class MultiError << (S,Aquamarine) >> {
+        - any(pred <font color=blue>func</font>(Error) bool) bool
+
+        + IsUsage() bool
+        + IsDecode() bool
+        + IsInternal() bool
+        + Cause() error
+        + Error() string
+
+    }
+    class NopEncoder << (S,Aquamarine) >> {
+        + Serialize(src <font color=blue>interface</font>{}) ([]byte, error)
+        + Deserialize(src []byte, dst <font color=blue>interface</font>{}) error
+
+    }
+    class SecureCookie << (S,Aquamarine) >> {
+        - hashKey []byte
+        - hashFunc <font color=blue>func</font>() hash.Hash
+        - blockKey []byte
+        - block cipher.Block
+        - maxLength int
+        - maxAge int64
+        - minAge int64
+        - err error
+        - sz Serializer
+        - timeFunc <font color=blue>func</font>() int64
+
+        - timestamp() int64
+
+        + MaxLength(value int) *SecureCookie
+        + MaxAge(value int) *SecureCookie
+        + MinAge(value int) *SecureCookie
+        + HashFunc(f <font color=blue>func</font>() hash.Hash) *SecureCookie
+        + BlockFunc(f <font color=blue>func</font>([]byte) (cipher.Block, error)) *SecureCookie
+        + SetSerializer(sz Serializer) *SecureCookie
+        + Encode(name string, value <font color=blue>interface</font>{}) (string, error)
+        + Decode(name string, value string, dst <font color=blue>interface</font>{}) error
+
+    }
+    interface Serializer  {
+        + Serialize(src <font color=blue>interface</font>{}) ([]byte, error)
+        + Deserialize(src []byte, dst <font color=blue>interface</font>{}) error
+
+    }
+    class cookieError << (S,Aquamarine) >> {
+        - typ errorType
+        - msg string
+        - cause error
+
+        + IsUsage() bool
+        + IsDecode() bool
+        + IsInternal() bool
+        + Cause() error
+        + Error() string
+
+    }
+    class securecookie.MultiError << (T, #FF7700) >>  {
+    }
+    class securecookie.errorType << (T, #FF7700) >>  {
+    }
+}
+"__builtin__.error" *-- "securecookie.Error"
+
+"securecookie.Serializer" <|-- "securecookie.GobEncoder"
+"securecookie.Serializer" <|-- "securecookie.JSONEncoder"
+"securecookie.Error" <|-- "securecookie.MultiError"
+"securecookie.Serializer" <|-- "securecookie.NopEncoder"
+"securecookie.Codec" <|-- "securecookie.SecureCookie"
+"securecookie.Error" <|-- "securecookie.cookieError"
+
+"__builtin__.[]error" #.. "securecookie.MultiError"
+"__builtin__.int" #.. "securecookie.errorType"
+@enduml
