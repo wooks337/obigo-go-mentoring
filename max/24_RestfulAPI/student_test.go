@@ -29,7 +29,6 @@ func TestJsonHandlerGetList(t *testing.T) {
 }
 
 func TestJsonHandlerGet(t *testing.T) {
-
 	assert := assert.New(t)
 
 	var student Student
@@ -51,22 +50,21 @@ func TestJsonHandlerGet(t *testing.T) {
 }
 
 func TestHandlerPost(t *testing.T) {
-
-	assert := assert.New(t)
+	assert := assert.New(t) //import "github.com/stretchr/testify/assert"
 
 	var student Student
-
 	res := httptest.NewRecorder()
 	req := httptest.NewRequest("POST", "/students",
-		strings.NewReader(`{"id":0, "Name":"ccc", "Age":15, "Score":78}`))
-
+		strings.NewReader(`{"id":0, "Name":"ccc", "Age":15, "Score":78}`)) //body데이터
 	mux := MakeWebHandler()
-	mux.ServeHTTP(res, req)
-	assert.Equal(http.StatusCreated, res.Code)
+	mux.ServeHTTP(res, req) //Test서버 작동
+
+	assert.Equal(http.StatusCreated, res.Code) //상태값 확인
 
 	res = httptest.NewRecorder()
-	req = httptest.NewRequest("GET", "/students/3", nil)
+	req = httptest.NewRequest("GET", "/students/1", nil)
 	mux.ServeHTTP(res, req)
+
 	assert.Equal(http.StatusOK, res.Code)
 	err := json.NewDecoder(res.Body).Decode(&student)
 	assert.Nil(err)
@@ -105,5 +103,4 @@ func TestHandlerDelete(t *testing.T) {
 	req = httptest.NewRequest("DELETE", "/students/5", nil)
 	mux.ServeHTTP(res, req)
 	assert.Equal(http.StatusNotFound, res.Code)
-
 }
