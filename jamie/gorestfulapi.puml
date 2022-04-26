@@ -1,0 +1,22 @@
+@startuml
+namespace main {
+    class Student << (S,Aquamarine) >> {
+        + Id int
+        + Name string
+        + Age int
+        + Score int
+
+    }
+    class Students << (S,Aquamarine) >> {
+        + Len() int
+        + Swap(i int, j int) 
+        + Less(i int, j int) bool
+
+    }
+    class main.Students << (T, #FF7700) >>  {
+    }
+}
+
+
+"main.[]Student" #.. "main.Students"
+@enduml
