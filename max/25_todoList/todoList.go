@@ -27,22 +27,21 @@ func main() {
 }
 
 func MakeWebHandler() http.Handler {
-
 	todoMap = make(map[int]Todo)
-	mux := mux.NewRouter()
-	mux.Handle("/", http.FileServer(http.Dir("public")))
-	s := mux.PathPrefix("/todos").Subrouter()
-
+	r := mux.NewRouter()
+	r.Handle("/", http.FileServer(http.Dir("public")))
+	s := r.PathPrefix("/todos").Subrouter()
 	s.HandleFunc("", GetTodoListHandler).Methods("GET")
 	s.HandleFunc("", PostTodoHandler).Methods("POST")
 	s.HandleFunc("/{id:[0-9]+}", RemoveTodoHandler).Methods("DELETE")
 	s.HandleFunc("/{id:[0-9]+}", UpdateTodoHandler).Methods("PUT")
+
 	//mux.HandleFunc("/todos", GetTodoListHandler).Methods("GET")
 	//mux.HandleFunc("/todos", PostTodoHandler).Methods("POST")
 	//mux.HandleFunc("/todos/{id:[0-9]+}", RemoveTodoHandler).Methods("DELETE")
 	//mux.HandleFunc("/todos/{id:[0-9]+}", UpdateTodoHandler).Methods("PUT")
 
-	return mux
+	return r
 }
 
 func GetTodoListHandler(w http.ResponseWriter, req *http.Request) {
