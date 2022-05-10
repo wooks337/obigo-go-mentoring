@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	_6_gorm "goMod"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
@@ -24,7 +23,7 @@ func main() {
 		sqlDB.Close()
 	}()
 
-	//res := []filmActors{}
+	//res := []FilmActors{}
 	//db.Table("film").Select("a.actor_id, film.film_id, title, first_name, last_name").
 	//	Joins("JOIN film_actor fa ON fa.film_id = film.film_id").
 	//	Joins("JOIN actor a ON a.actor_id = fa.actor_id").Scan(&res)
@@ -35,21 +34,21 @@ func main() {
 	//	Joins("JOIN film_actor fa ON fa.film_id = film.film_id").
 	//	Joins("JOIN actor a ON a.actor_id = fa.actor_id").Rows()
 	//for rows.Next() {
-	//	f := filmActors{}
-	//	rows.Scan(&f.actor_id, &f.film_id, &f.title, &f.first_name, &f.last_name)
+	//	f := FilmActors{}
+	//	rows.Scan(&f.Actor_id, &f.Film_id, &f.Title, &f.First_name, &f.Last_name)
 	//	fmt.Println(f)
 	//}
 
-	res := []_6_gorm.Film{}
-	db.Joins("film_actor").Find(&res)
-	fmt.Println(res)
+	//res := []_6_gorm.Film{}
+	//db.Joins("film_actor").Find(&res)
+	//fmt.Println(res)
 
 }
 
-type filmActors struct {
-	actor_id   int
-	film_id    int
-	title      string
-	first_name string
-	last_name  string
+type FilmActors struct {
+	Actor_id   int
+	Film_id    int
+	Title      string
+	First_name string
+	Last_name  string
 }
