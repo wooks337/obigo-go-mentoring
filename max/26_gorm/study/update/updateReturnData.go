@@ -27,10 +27,12 @@ func main() {
 	var students []StudentReturnData
 	//모두 조회
 	//db.Model(&students).Clauses(clause.Returning{}).Where("id IN ?", []int{27, 28, 29, 30}).Update("age", 21)
+	db.Where("id IN ?", []int{27, 28, 29, 30}).Find(&students)
+	db.Model(&students).Clauses(clause.Returning{}).Update("student_id", gorm.Expr("id * ? + major_id", 10))
 
 	//특정 컬럼만 조회
-	db.Model(&students).Clauses(clause.Returning{Columns: []clause.Column{{Name: "id"}, {Name: "name"}, {Name: "age"}}}).
-		Where("id IN ?", []int{27, 28, 29, 30}).Update("age", 20)
+	//db.Model(&students).Clauses(clause.Returning{Columns: []clause.Column{{Name: "id"}, {Name: "name"}, {Name: "age"}}}).
+	//	Where("id IN ?", []int{27, 28, 29, 30}).Update("age", 20)
 
 	fmt.Println(students)
 

@@ -23,10 +23,15 @@ func main() {
 		sqlDB.Close()
 	}()
 
-	s := StudentHook{}
-	db.Model(&StudentHook{}).Where("id=?", 33).Update("major_id", 2)
-	db.First(&s, 33)
-	fmt.Println(s)
+	//s := StudentHook{}
+	//db.Model(&StudentHook{}).Where("id>=?", 29).Update("major_id", 2)
+	//db.First(&s, 33)
+	//fmt.Println(s)
+
+	students := []StudentHook{}
+	db.Where("id>=?", 29).Find(&students)
+	//db.Model(&students).Updates(&StudentHook{MajorId: 2})
+	db.Model(&students).Updates(map[string]interface{}{"student_id": gorm.Expr("id * ? + major_id", 10)})
 
 }
 
@@ -41,7 +46,11 @@ func (StudentHook) TableName() string {
 	return "student"
 }
 
-func (s *StudentHook) AfterUpdate(tx *gorm.DB) (err error) {
-	s.StudentId = s.Id*10 + s.MajorId
+func (s *StudentHook) BeforeUpdate(tx *gorm.DB) (err error) {
+	fmt.Println("======", s)
+	//s.StudentId = s.Id*10 + s.MajorId
+	//if s.Id == 33 {
+	//	tx.Statement.SetColumn("major_id", 1)
+	//}
 	return nil
 }
