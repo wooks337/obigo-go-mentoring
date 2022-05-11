@@ -30,14 +30,15 @@ func main() {
 	//
 	//fmt.Println(res)
 
-	//rows, _ := db.Table("film").Select("a.actor_id, film.film_id, title, first_name, last_name").
-	//	Joins("JOIN film_actor fa ON fa.film_id = film.film_id").
-	//	Joins("JOIN actor a ON a.actor_id = fa.actor_id").Rows()
-	//for rows.Next() {
-	//	f := FilmActors{}
-	//	rows.Scan(&f.Actor_id, &f.Film_id, &f.Title, &f.First_name, &f.Last_name)
-	//	fmt.Println(f)
-	//}
+	rows, _ := db.Table("film").Select("a.actor_id, film.film_id, title, first_name, last_name").
+		Joins("JOIN film_actor fa ON fa.film_id = film.film_id").
+		Joins("JOIN actor a ON a.actor_id = fa.actor_id").Rows()
+	for rows.Next() {
+		f := FilmActors{}
+		//rows.Scan(&f.Actor_id, &f.Film_id, &f.Title, &f.First_name, &f.Last_name)
+		db.ScanRows(rows, &f)
+		fmt.Println(f)
+	}
 
 	//res := []_6_gorm.Film{}
 	//db.Joins("film_actor").Find(&res)
