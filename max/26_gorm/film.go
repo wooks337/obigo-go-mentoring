@@ -1,7 +1,7 @@
 package _6_gorm
 
 type Film struct {
-	Film_id              int
+	Film_id              int `gorm:"primaryKey;autoIncrement:true"`
 	Title                string
 	Description          string
 	Release_year         int
