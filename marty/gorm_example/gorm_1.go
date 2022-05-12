@@ -17,6 +17,8 @@ type User struct {
 	ApproveMessage string    `gorm:"column:approve_message;type(varchar(4000))"`
 }
 
+const loyalUser string = "marty@obigo.com"
+
 func main() {
 	dsn := "root:root@(10.28.3.180:3307)/SchoolDB?charset=utf8mb4&parseTime=True&loc=Local"
 	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{
@@ -26,9 +28,16 @@ func main() {
 		panic(err)
 	}
 
+	// create
 	err = Create(db)
 	if err != nil {
 		fmt.Errorf("Create error :  %v", err)
+	}
+
+	// get user
+	err = GetUser(db)
+	if err != nil {
+		fmt.Errorf("GetUser error :  %v", err)
 	}
 
 }
@@ -53,6 +62,21 @@ func Create(db *gorm.DB) (err error) {
 		return errors.New("Invalid data !!")
 	}
 	tx.Commit()
+
+	return nil
+}
+
+func GetUser(db *gorm.DB) (err error) {
+	query := db.Table("user").Select("id, email")
+
+	// 검색 필터 같은 기능 이용시 아래 와 같이 subQuery를 이용
+	if loyalUser != "" {
+		query = query.Where("email like ?", "%"+loyalUser+"%")
+	}
+
+	if query.Error != nil {
+		return query.Error
+	}
 
 	return nil
 }
