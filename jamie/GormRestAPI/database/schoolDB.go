@@ -1,7 +1,7 @@
 package database
 
 type Student struct {
-	StudentID uint   `json:"id" gorm:"primaryKey;autoIncrement"`
+	StudentID uint   `json:"student_id" gorm:"primaryKey;autoIncrement"`
 	Name      string `json:"name" gorm:"not null"`
 	Subject   string `json:"subject"`
 	Score     int    `json:"score"`
