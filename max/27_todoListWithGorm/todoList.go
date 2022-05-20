@@ -27,14 +27,7 @@ func main() {
 
 	log.Println("Started App")
 
-	ConnectDB()
-
-	err := http.ListenAndServe(":3000", n)
-	if err != nil {
-		panic(err)
-	}
-
-	err = ConnectDB()
+	err := ConnectDB()
 	if err != nil {
 		err := fmt.Errorf("연결실패 : %v", err)
 		panic(err)
@@ -49,6 +42,11 @@ func main() {
 		fmt.Println("Todo Err")
 	} else {
 		fmt.Println("Todo Suc")
+	}
+
+	err = http.ListenAndServe(":3000", n)
+	if err != nil {
+		panic(err)
 	}
 }
 
