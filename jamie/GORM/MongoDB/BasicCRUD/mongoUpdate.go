@@ -12,11 +12,11 @@ func main() {
 
 	////===== Update =====////
 
-	//UpdateOne
-
-	////조건1: author가 jamie인 document
+	////UpdateOne
+	//
+	////조건1: title이 post1인 document
 	//filter1 := bson.D{
-	//	{"author", "jamie"},
+	//	{"title", "Post1"},
 	//}
 	////수정 내용1: category를 Obigo로 수정
 	//update1 := bson.D{

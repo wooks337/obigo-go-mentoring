@@ -17,6 +17,31 @@ func main() {
 	////===== Select =====////
 
 	//Find()
+	//모든 데이터 읽어오기---cursor.All()
+	//cursor, err := postCollection.Find(context.TODO(), bson.M{})
+	//if err != nil {
+	//	log.Fatal(err)
+	//}
+	//var posts []bson.M
+	//if err = cursor.All(context.TODO(), &posts); err != nil {
+	//	log.Fatal(err)
+	//}
+	//fmt.Println(posts)
+
+	////모든 데이터 읽어오기---cursor.Next()
+	//cursor, err := postCollection.Find(context.TODO(), bson.M{})
+	//if err != nil {
+	//	log.Fatal(err)
+	//}
+	//defer cursor.Close(context.TODO()) //프로그램 종료 전 defer로 cursor 닫아주기
+	//
+	//for cursor.Next(context.TODO()) {
+	//	var post bson.M
+	//	if err = cursor.Decode(&post); err != nil {
+	//		log.Fatal(err)
+	//	}
+	//	fmt.Println(post)
+	//}
 
 	////조건 :view가 1보다 큰 document
 	//filter := bson.D{
