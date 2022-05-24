@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"log"
@@ -49,14 +50,14 @@ func main() {
 
 	//DeleteOne
 
-	////첫번째 document 삭제
-	//result, err := postCollection.DeleteOne(context.TODO(), bson.D{})
-	//if err != nil {
-	//	fmt.Println("document 삭제 error!!")
-	//	log.Fatal(err)
-	//}
-	//fmt.Println("첫번째 document 삭제")
-	//fmt.Println("삭제된 document 수: ", result.DeletedCount)
+	//첫번째 document 삭제
+	result, err := postCollection.DeleteOne(context.TODO(), bson.D{})
+	if err != nil {
+		fmt.Println("document 삭제 error!!")
+		log.Fatal(err)
+	}
+	fmt.Println("첫번째 document 삭제")
+	fmt.Println("삭제된 document 수: ", result.DeletedCount)
 
 	//DeleteMany
 
