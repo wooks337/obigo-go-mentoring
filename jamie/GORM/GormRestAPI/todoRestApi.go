@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"github.com/gorilla/mux"
 	"github.com/unrolled/render"
 	"github.com/urfave/negroni"
@@ -9,16 +10,18 @@ import (
 	"gorm.io/gorm/logger"
 	"log"
 	"net/http"
+	"obigo-go-mentoring/jamie/GORM/GormRestAPI/Service"
 	"obigo-go-mentoring/jamie/GORM/GormRestAPI/database"
 )
 
 //전역 변수 선언
-var r *render.Render
+var rd *render.Render
 var todoMap map[int]database.Todo
 var lastID int = 0
+var db *gorm.DB
 
 func main() {
-	r = render.New()
+	rd = render.New()
 	m := MakeWebHandler()  //아래에 내가 만든 핸들러
 	n := negroni.Classic() //negroni 기본 핸들러 : 터미널에 로그 표시, public 폴더 파일 서버 자동 동작
 	n.UseHandler(m)        //UseHandler 메서드로 내가 만든 핸들러 감싸서 http 요청 처리 전에 사용자 핸들러 호출
@@ -32,6 +35,10 @@ func main() {
 
 	//todo db 만들기
 	db.AutoMigrate(&database.Todo{})
+	s1 := database.Todo{Name: "Jamie", Completed: true}
+	s2 := database.Todo{Name: "Lina", Completed: true}
+	db.Create(&s1)
+	db.Create(&s2)
 
 	//3000번 포트에서 요청 대기
 	err = http.ListenAndServe(":3000", n)
@@ -56,11 +63,22 @@ func ConnDB() (err error) {
 func MakeWebHandler() http.Handler {
 
 	todoMap = make(map[int]database.Todo)
-	mux := mux.NewRouter()
-	mux.Handle("/", http.FileServer(http.Dir("public")))                     //
-	mux.HandleFunc("/todos", GetTodoListHandler).Methods("GET")              //전체 목록 반환
-	mux.HandleFunc("/todos", PostTodoHandler).Methods("POST")                //항목 추가
-	mux.HandleFunc("/todos/{id:[0-9]+", RemoveTodoHandler).Methods("DELETE") //항목 삭제
-	mux.HandleFunc("/todos/{id:[0-9]+", UpdateTodoHandler).Methods("PUT")    //항목 수정
-	return mux
+	m := mux.NewRouter()
+	m.Handle("/", http.FileServer(http.Dir("public")))        //'/'경로에 대한 요청이 올 때, public 아래의 파일 제공
+	m.HandleFunc("/todos", GetTodoListHandler).Methods("GET") //전체 목록 반환
+	m.HandleFunc("/todos", PostTodoHandler).Methods("POST")   //항목 추가
+	//m.HandleFunc("/todos/{id:[0-9]+", RemoveTodoHandler).Methods("DELETE") //항목 삭제
+	//m.HandleFunc("/todos/{id:[0-9]+", UpdateTodoHandler).Methods("PUT")    //항목 수정
+	return m
+}
+
+func GetTodoListHandler(w http.ResponseWriter, r *http.Request) {
+	list, _ := Service.GetTodoList(db)
+
+	fmt.Println(list)
+	rd.JSON(w, http.StatusOK, list)
+}
+
+func PostTodoHandler(w http.ResponseWriter, r *http.Request) {
+
 }
