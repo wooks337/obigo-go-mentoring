@@ -29,8 +29,18 @@ func main() {
 	//}
 	//fmt.Println("수정된 레코드 개수: ", result1.ModifiedCount)
 
-	//UpdateMany
+	//UpdateOne()
 
+	//filter := bson.D{{"title", "Unknown"}}
+	//update := bson.D{{"$set", bson.D{{"category", "Obigo"}, {"comments",
+	//	bson.D{{"com_id", 1}, {"recommend", 15}}}}}}
+	//
+	//result, _ := postCollection.UpdateOne(context.TODO(), filter, update)
+	//fmt.Println("조건에 일치하는 doc: ", result.MatchedCount)
+	//fmt.Println("수정된 doc: ", result.ModifiedCount)
+
+	//UpdateMany
+	//
 	////조건2: views가 1보다 큰 document
 	//filter2 := bson.D{
 	//	{"views", bson.D{{"$gte", 1}}},
@@ -45,5 +55,14 @@ func main() {
 	//	log.Fatal(err)
 	//}
 	//fmt.Println("수정된 레코드 개수: ", result2.ModifiedCount)
+
+	//UpdateByID()
+	////ObjId 기준으로 데이터 변경
+	//docId, _ := primitive.ObjectIDFromHex("628af19f81a81751ef2e8f89")
+	//update := bson.D{{"$currentDate", bson.D{{"date", true}}}}
+	//
+	//result, _ := postCollection.UpdateByID(context.TODO(), docId, update)
+	//fmt.Println("조건에 일치하는 doc: ", result.MatchedCount)
+	//fmt.Println("수정된 doc: ", result.ModifiedCount)
 
 }

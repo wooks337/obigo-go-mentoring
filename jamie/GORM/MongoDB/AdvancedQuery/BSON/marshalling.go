@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/mongo/options"
 	"obigo-go-mentoring/jamie/GORM/MongoDB/conn"
 )
 
@@ -38,23 +37,18 @@ func main() {
 	//	fmt.Println(err2)
 	//}
 
-	//Query
-	var result []byte
-	var test []int
-	filter := bson.D{{"state", "PA"}}
-	opts := options.FindOne().SetProjection(bson.D{{"_id", 0}, {"tags", 1}})
-	studentColl.FindOne(context.TODO(), filter, opts).Decode(&result)
-	bson.Unmarshal(result, &test)
-	fmt.Println(test)
+	filter := bson.D{{"age", 8}}
+
+	var result bson.D
+	studentColl.FindOne(context.TODO(), filter).Decode(&result)
+
 	fmt.Println(result)
 
-	//fmt.Println(reflect.TypeOf(result))
+	////Query
+	//var result Student
+	//
+	//opts := options.FindOne().SetProjection(bson.D{{"_id", 0}, {"tags", 1}})
+	//studentColl.FindOne(context.TODO(), bson.D{}, opts).Decode(&result)
+	//fmt.Println(result)
 
-	//doc, err := bson.Marshal(bson.D{{"tags", bson.A{24, 55, 32, 10, 13, 85, 8}}})
-	//if err != nil {
-	//	log.Println(err)
-	//}
-	//var test bson.D
-	//err = bson.Unmarshal(doc, &test)
-	//fmt.Println(test)
 }
