@@ -67,6 +67,9 @@ Mobility Service 3 team golang study space
 - DataGrip 활용해서 다양한 Query 실습해보기
 - golang gorm  활용해서 CRUD 실습해보기
 - Resffull API 서버 만들고 Database 연결하기
+- mongodb(NoSQL) 
+  - 정리 및 설치
+  - golang 에서 실습하기 
 ```
 
 **5주차** 
@@ -77,6 +80,13 @@ Mobility Service 3 team golang study space
 - golang webserver - Redis 세션 구축하기
 - golang webserver - 로그인/로그아웃 기능 만들기
 ```
+
+**6주차** 
+```
+- Jenkins (CI/CD) 셋팅 및 실습해보기
+- Batch 만들어서 스케쥴링 프로세서 만들어보기
+```
+
 
 </div>
 </details>

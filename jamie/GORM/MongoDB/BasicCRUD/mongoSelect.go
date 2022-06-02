@@ -17,7 +17,57 @@ func main() {
 	////===== Select =====////
 
 	//Find()
+	//모든 데이터 읽어오기---cursor.All()
+	cursor, err := postCollection.Find(context.TODO(), bson.M{})
+	if err != nil {
+		log.Fatal(err)
+	}
+	var posts []bson.M
+	if err = cursor.All(context.TODO(), &posts); err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println(posts)
 
+	////모든 데이터 읽어오기---cursor.Next()
+	//cursor, err := postCollection.Find(context.TODO(), bson.M{})
+	//if err != nil {
+	//	log.Fatal(err)
+	//}
+	//defer cursor.Close(context.TODO()) //프로그램 종료 전 defer로 cursor 닫아주기
+	//
+	//for cursor.Next(context.TODO()) {
+	//	var post bson.M
+	//	if err = cursor.Decode(&post); err != nil {
+	//		log.Fatal(err)
+	//	}
+	//	fmt.Println(post)
+	//}
+	////모든 데이터 읽어오기 --- cursor.TryNext()
+	cursor, err := postCollection.Find(context.TODO(), bson.M{})
+	if err != nil {
+		log.Fatal(err)
+		log.Println("==2")
+
+	}
+	defer cursor.Close(context.TODO())
+	for {
+		if cursor.TryNext(context.TODO()) {
+			var result bson.D
+			if err := cursor.Decode(&result); err != nil {
+				log.Println("==2")
+				log.Fatal(err)
+			}
+			fmt.Println(result)
+			continue
+		}
+		if err := cursor.Err(); err != nil {
+			log.Println("==2")
+			log.Fatal(err)
+		}
+		if cursor.ID() == 0 {
+			break
+		}
+	}
 	////조건 :view가 1보다 큰 document
 	//filter := bson.D{
 	//	{"views", bson.D{{"$gt", 1}}},

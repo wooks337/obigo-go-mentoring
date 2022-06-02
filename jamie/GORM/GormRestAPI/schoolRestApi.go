@@ -18,8 +18,8 @@ var db *gorm.DB
 var err error
 
 func main() {
-	//var dsn = "root:root@(10.28.3.180:3307)/Jamie?charset=utf8mb4&parseTime=True&loc=Local"
-	var dsn = "root:jamiekim@(localhost:3306)/jamie?charset=utf8mb4&parseTime=True&loc=Local"
+	var dsn = "root:root@(10.28.3.180:3307)/Jamie?charset=utf8mb4&parseTime=True&loc=Local"
+	//var dsn = "root:jamiekim@(localhost:3306)/jamie?charset=utf8mb4&parseTime=True&loc=Local"
 
 	db, err = gorm.Open(mysql.Open(dsn), &gorm.Config{
 		Logger: logger.Default.LogMode(logger.Info),

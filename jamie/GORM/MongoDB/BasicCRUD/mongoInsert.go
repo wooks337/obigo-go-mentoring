@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"go.mongodb.org/mongo-driver/bson"
 	"obigo-go-mentoring/jamie/GORM/MongoDB/conn"
+	"time"
 )
 
 func main() {
@@ -12,16 +13,30 @@ func main() {
 	conn := conn.MongoConnect()
 	//사용할 DB와 Collection 지정
 	postCollection := conn.Database("Jamie_Go").Collection("posts")
+	//commentCollection := conn.Database("Jamie_Go").Collection("comments")
 
 	////===== Insert =====////
 
 	//===InsertOne
 
 	post1 := bson.D{
-		{"author", "jamie"},
-		{"category", "language"},
-		{"views", 1},
-		{"content", "this is posting 1"},
+		{"title", "Post15"},
+		{"category", "News"},
+		{"likes", 1},
+		{"body", "Body of post."},
+		{"comments", bson.A{
+			bson.D{
+				{"com_id", 1},
+				{"recommend", 0},
+			},
+			bson.D{
+				{"com_id", 2},
+				{"recommend", 0},
+			},
+		},
+		},
+		{"date", time.Stamp},
+		{"tags", bson.A{"java", "spring", "backend", "webserver"}},
 	}
 	result, err := postCollection.InsertOne(context.TODO(), post1)
 	if err != nil {
