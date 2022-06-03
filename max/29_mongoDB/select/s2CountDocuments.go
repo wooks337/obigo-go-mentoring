@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"go.mongodb.org/mongo-driver/bson"
 	"mongoTest/connect"
 )
 
@@ -35,6 +36,11 @@ func main() {
 	//	fmt.Println(result)
 	//}
 
-	count, _ := bookCollection.EstimatedDocumentCount(context.TODO())
-	fmt.Println(count)
+	//EstimatedDocumentCount
+	//count, _ := bookCollection.EstimatedDocumentCount(context.TODO())
+	//fmt.Println(count)
+
+	//cursor의 갯수
+	cursor2, err := bookCollection.Find(context.TODO(), bson.D{})
+	fmt.Println(cursor2.RemainingBatchLength())
 }

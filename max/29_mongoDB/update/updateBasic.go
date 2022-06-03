@@ -19,17 +19,43 @@ func main() {
 
 	bookCollection := mongoDB.Database("maxSample").Collection("book")
 
-	filter := bson.D{{"title", "Naruto"}}
-	updateBson := bson.D{
-		{"$set", bson.D{{"writer", "ninza2"}}},
-	}
+	//UpdateOne
+	//filter := bson.D{{"title", "article08"}}
+	//updateBson := bson.D{
+	//	{"$set", bson.D{{"writer", "ninza3"}}},
+	//}
+	//res, err := bookCollection.UpdateOne(context.TODO(), filter, updateBson)
+	//
+	//if err != nil {
+	//	fmt.Println("error : ", err)
+	//} else {
+	//	fmt.Println("Suc. match : ", res.MatchedCount, ", modified : ", res.ModifiedCount)
+	//}
 
-	res, err := bookCollection.UpdateOne(context.TODO(), filter, updateBson)
+	//UpdateMany
+	filter := bson.D{{"title", bson.D{{"$in", []string{"naruto", "article06", "article07"}}}}}
+	updateBson := bson.D{
+		{"$push", bson.D{{"comments", bson.D{{"name", "Bravo"}, {"message", "wow"}}}}},
+	}
+	res, err := bookCollection.UpdateMany(context.TODO(), filter, updateBson)
 
 	if err != nil {
 		fmt.Println("error : ", err)
 	} else {
-		fmt.Println("Suc")
+		fmt.Println("Suc. match : ", res.MatchedCount, ", modified : ", res.ModifiedCount)
 	}
-	fmt.Println(res)
+
+	////ReplaceOne
+	//filter := bson.D{{"title", "article08"}}
+	//updateBson := bson.D{
+	//	{"writer", "ninza3"},
+	//}
+	//res, err := bookCollection.ReplaceOne(context.TODO(), filter, updateBson)
+	//
+	//if err != nil {
+	//	fmt.Println("error : ", err)
+	//} else {
+	//	fmt.Println("Suc. match : ", res.MatchedCount, ", modified : ", res.ModifiedCount)
+	//}
+
 }

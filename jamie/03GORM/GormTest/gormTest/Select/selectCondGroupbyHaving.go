@@ -33,7 +33,7 @@ func main() {
 
 	//쿼리 결과 담을 슬라이스
 	//var film = make([]domain.Film, 1)
-	//var res = make([]Result, 1)
+	var res = make([]Result, 1)
 
 	////Group By
 	////SELECT rating, round(sum(rental_rate)) as total FROM `film` GROUP BY `rating` ORDER BY total
@@ -63,8 +63,13 @@ func main() {
 	//	log.Println(res2)
 	//}
 
-	////SELECT rating, round(sum(replacement_cost)) as total FROM `film` GROUP BY `rating` HAVING rating LIKE '%G%'
+	//SELECT rating, round(sum(replacement_cost)) as total FROM `film` GROUP BY `rating` HAVING rating LIKE '%G%'
 	//db.Table("film").Select("rating, round(sum(replacement_cost)) as total").
+	//	Group("rating").
+	//	Having("rating LIKE ?", "%G%").
+	//	Scan(&res)
+	//log.Println(res)
+	//db.Model(&domain.Film{}).Select("rating, round(sum(replacement_cost)) as total").
 	//	Group("rating").
 	//	Having("rating LIKE ?", "%G%").
 	//	Scan(&res)
