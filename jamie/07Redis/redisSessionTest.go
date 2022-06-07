@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/go-redis/redis/v9"
+	"github.com/unrolled/render"
+	"github.com/urfave/negroni"
 	"log"
 )
 
@@ -13,22 +15,15 @@ type Employee struct {
 	Address string `json:"address"`
 }
 
+var client *redis.Client
 var ctx = context.Background()
 
 func main() {
 
-	options := redis.Options{
-		Addr:     "10.28.3.180:6379",
-		Password: "",
-		DB:       0,
-	}
-	//연결 확인
-	client := redis.NewClient(&options)
-	pong, err := client.Ping(ctx).Result()
-	if err != nil {
-		log.Fatalf("Failed to PING Redis: %v", err)
-	}
-	fmt.Println(pong)
+	rd = render.New()
+	m := MakeWebHandler()
+	n := negroni.Classic() //negroni 기본 핸들러 : 터미널에 로그 표시, public 폴더 파일 서버 자동 동작
+	n.UseHandler(m)
 
 	json, err := json.Marshal(Employee{Name: "Jamie", Address: "Seoul"})
 	if err != nil {
@@ -61,4 +56,19 @@ func main() {
 		panic(err)
 	}
 
+}
+
+func initialize() (*redis.Client, error) {
+	options := redis.Options{
+		Addr:     "10.28.3.180:6379",
+		Password: "",
+		DB:       0,
+	}
+	//연결 확인
+	client := redis.NewClient(&options)
+	_, err := client.Ping(ctx).Result()
+	if err != nil {
+		log.Fatalf("Failed to PING Redis: %v", err)
+	}
+	return client, err
 }
