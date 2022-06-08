@@ -1,9 +1,11 @@
 package main
 
 import (
+	"errors"
 	"fmt"
-	"github.com/dgrijalva/jwt-go"
+	//"github.com/dgrijalva/jwt-go"
 	//"github.com/dgrijalva/jwt-go/v4"
+	"github.com/golang-jwt/jwt/v4"
 	"github.com/gorilla/mux"
 	"github.com/unrolled/render"
 	"github.com/urfave/negroni"
@@ -73,11 +75,11 @@ func createJWT(req *http.Request) (string, error) {
 	claims := userClaims{
 		Name: name,
 		Age:  age,
-		StandardClaims: jwt.StandardClaims{
-			ExpiresAt: time.Now().Add(time.Minute * 10).Unix(),
-			//ExpiresAt: jwt.At(time.Now().Add(time.Minute * 1)), //만료시간 설정
+		RegisteredClaims: jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Second * 10)),
 		},
 	}
+
 	//헤더 및 페이로드 생성
 	aToken := jwt.NewWithClaims(jwt.SigningMethodHS256, &claims)
 
@@ -106,12 +108,17 @@ func readJWTHandler(w http.ResponseWriter, req *http.Request) {
 		return signKey, err
 	})
 	if err != nil {
-		if ve, ok := err.(*jwt.ValidationError); ok {
-			if ve.Errors == jwt.ValidationErrorExpired {
-				rd.JSON(w, http.StatusUnauthorized, "유효기간 만료")
-				return
-			}
+		//if ve, ok := err.(*jwt.ValidationError); ok {
+		//	if ve.Errors == jwt.ValidationErrorExpired {
+		//		rd.JSON(w, http.StatusUnauthorized, "유효기간 만료")
+		//		return
+		//	}
+		//}
+		if errors.Is(err, jwt.ErrTokenExpired) {
+			rd.JSON(w, http.StatusUnauthorized, "유효기간 만료!")
+			return
 		}
+
 		rd.JSON(w, http.StatusUnauthorized, err)
 		return
 	}
@@ -154,5 +161,5 @@ type success struct {
 type userClaims struct {
 	Name string
 	Age  int
-	jwt.StandardClaims
+	jwt.RegisteredClaims
 }
