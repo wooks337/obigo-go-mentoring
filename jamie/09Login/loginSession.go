@@ -30,14 +30,14 @@ func main() {
 	//render 패키지는 기본적으로 templates에서 찾는다.
 	//폴더명을 변경하고 싶을 때 옵션 설정
 	rd = render.New(render.Options{
-		Directory:  "templates",
+		Directory:  "09Login/templates",
 		Extensions: []string{".html", ".tmpl"},
 	})
 	mux := MakeWebHandler()
 	n := negroni.Classic() //negroni 기본 핸들러 : 터미널에 로그 표시, public 폴더 파일 서버 자동 동작
 	n.UseHandler(mux)
 
-	//redis
+	//redis 연결
 	client, err := initialize()
 	if err != nil {
 		panic(err)
@@ -47,11 +47,17 @@ func main() {
 		panic(err)
 	}
 
-	//mysql
+	//mysql 연결
 	db, err = ConnectDB()
 	if err != nil {
 		err := fmt.Errorf("연결실패 : %v", err)
 		log.Println(err)
+	}
+	//테이블 생성
+	if err := db.AutoMigrate(&domain.User{}); err != nil {
+		fmt.Println("User Err")
+	} else {
+		fmt.Println("User Suc")
 	}
 
 	log.Println("Started App")
@@ -92,10 +98,10 @@ func mainHandler(w http.ResponseWriter, r *http.Request) {
 	rd.HTML(w, http.StatusOK, "index", nil)
 }
 func loginPageHandler(w http.ResponseWriter, r *http.Request) {
-	rd.HTML(w, http.StatusOK, "login", "")
+	rd.HTML(w, http.StatusOK, "login", nil)
 }
 func signupPageHandler(w http.ResponseWriter, r *http.Request) {
-	rd.HTML(w, http.StatusOK, "signup", "")
+	rd.HTML(w, http.StatusOK, "signup", nil)
 }
 
 //회원가입 핸들러
@@ -107,6 +113,7 @@ func signupHandler(w http.ResponseWriter, r *http.Request) {
 		rd.JSON(w, http.StatusBadRequest, err.Error())
 		return
 	}
+	fmt.Println(user)
 	err = SignUp(db, user)
 
 	if err != nil {
@@ -119,6 +126,7 @@ func signupHandler(w http.ResponseWriter, r *http.Request) {
 
 //mysql 서버 연결 함수
 func ConnectDB() (*gorm.DB, error) {
+	//dsn := "root:jamiekim@(localhost:3306)/testdb?charset=utf8mb4&parseTime=True&loc=Local"
 	dsn := "root:root@tcp(10.28.3.180:3307)/Jamie?charset=utf8mb4&parseTime=True&loc=Local"
 	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{
 		Logger: logger.Default.LogMode(logger.Info),

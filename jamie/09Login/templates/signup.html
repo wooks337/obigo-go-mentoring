@@ -10,9 +10,9 @@
 <h1>회원가입 페이지</h1>
 <form id="loginForm">
     <span>ID</span>
-    <input type="text" name="username" id="username_input" check_result="fail" required>
+    <input name="userID" type="text">
     <button type="button" id="id_overlap_button">아이디 중복 검사</button>
-    <img id="id_check_success" style="display: none;">
+{{/*    <img id="id_check_success" style="display: none;">*/}}
     <br><br>
 
     <span>Password</span>
@@ -23,9 +23,6 @@
     <input name="name" type="text">
     <br><br>
 
-    <span>Age</span>
-    <input name="age" type="number">
-    <br><br>
 
     <span>Email</span>
     <input name="email" type="text">
@@ -49,13 +46,18 @@
 
     //회원가입 버튼 클릭 시, 유저 데이터를 하나의 객체로 직렬화하여 ajax로 회원가입 진행
     $("#btnJoin").on('click', function(){
-        let signup_form = $("loginForm").serializeArray()
-        console.log(signup_form)
+        let formSerializeArray = $('#signupForm').serializeArray()
+        var object = {};
+        for (var i = 0; i < formSerializeArray.length; i++){
+            object[formSerializeArray[i]['name']] = formSerializeArray[i]['value'];
+        }
+        var jsonUser = JSON.stringify(object)
+        console.log(jsonUser)
 
         $.ajax({
             type : 'POST',
             url : '/signup',    //여기서 function 실행
-            data : signup_form,
+            data : jsonUser,
             success : function (data){
                 if(data == true){
                     alert("회원가입 완료. 로그인 해주세요")
