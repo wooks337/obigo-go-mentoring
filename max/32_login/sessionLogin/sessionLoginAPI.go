@@ -16,12 +16,15 @@ import (
 	"loginMod/service"
 	"loginMod/util"
 	"net/http"
+	"regexp"
 	"strconv"
 )
 
 var rd *render.Render
 var red *redis.Client
 var db *gorm.DB
+
+const SessionID = "sessionId"
 
 func main() {
 	rd = render.New(render.Options{
@@ -71,10 +74,58 @@ func makeWebHandler() http.Handler {
 	//router.Handle("/", http.FileServer(http.Dir("sessionLogin/template")))
 	router.HandleFunc("/", mainHandler).Methods("GET")
 	router.HandleFunc("/login", loginPageHandler).Methods("GET")
+	router.HandleFunc("/login", loginHandler).Methods("POST")
+	router.HandleFunc("/login-check", loginCheckHandler).Methods("POST")
 	router.HandleFunc("/signup", signupPageHandler).Methods("GET")
 	router.HandleFunc("/signup", signupHandler).Methods("POST")
+	router.HandleFunc("/logout", logoutHandler).Methods("GET")
+	router.HandleFunc("/auth", authPageHandler).Methods("GET")
+	router.HandleFunc("/auth/profile", myInfoPageHandler).Methods("GET")
+
+	router.Use(authMiddleware)
 
 	return router
+}
+
+//var rNum = regexp.MustCompile(`\d`)  // Has digit(s)
+var rAuth = regexp.MustCompile(`/auth`) // Contains "abc"
+
+func authMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+
+		w.Header().Set("Cache-Control", "no-cache, private, max-age=0")
+		path := req.URL.Path
+		log.Println("미들웨어 작동 :", path) //작업
+
+		authSuccess := true
+
+		switch {
+		case rAuth.MatchString(path):
+			{
+				fmt.Println("auth필요")
+				cookie, err := req.Cookie(SessionID)
+				if err != nil {
+					authSuccess = false
+					break
+				}
+				_, err = util.RedisGet(red, cookie.Value)
+				if err != nil {
+					authSuccess = false
+					break
+				}
+			}
+		default:
+			fmt.Println("auth불필요")
+		}
+
+		if authSuccess {
+			fmt.Println("인증성공 or 인증필요 없음")
+			next.ServeHTTP(w, req) // 다음 핸들러 호출
+		} else {
+			fmt.Println("인증실패")
+			http.Redirect(w, req, "/login", http.StatusMovedPermanently)
+		}
+	})
 }
 
 func mainHandler(w http.ResponseWriter, req *http.Request) {
@@ -107,6 +158,12 @@ func signupHandler(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	duplicateCheck := service.UsernameDuplicateCheck(db, signupUser.Username)
+	if duplicateCheck == false {
+		rd.JSON(w, http.StatusOK, "아이디 중복")
+		return
+	}
+
 	user := loginMod.User{
 		Username: signupUser.Username,
 		Password: passwordHash,
@@ -122,6 +179,111 @@ func signupHandler(w http.ResponseWriter, req *http.Request) {
 	}
 
 	rd.JSON(w, http.StatusOK, true)
+}
+
+func loginHandler(w http.ResponseWriter, req *http.Request) {
+
+	var loginUser loginMod.LoginUser
+	err := json.NewDecoder(req.Body).Decode(&loginUser)
+	if err != nil {
+		rd.JSON(w, http.StatusBadRequest, err.Error())
+		return
+	}
+	fmt.Println(loginUser)
+
+	findUser, err := service.FindUserByUsername(db, loginUser.Username)
+	if err != nil {
+		rd.JSON(w, http.StatusOK, "잘못된 ID")
+		return
+	}
+
+	passwordCheck := util.PasswordCompare(loginUser.Password, findUser.Password)
+	if passwordCheck == false {
+		rd.JSON(w, http.StatusOK, "잘못된 PW")
+		return
+	}
+
+	sessionValue, err := util.RedisSave(red, findUser)
+	if err != nil {
+		rd.JSON(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	http.SetCookie(w, &http.Cookie{
+		Name:   SessionID,
+		Value:  sessionValue,
+		Path:   "/",
+		Domain: "",
+		MaxAge: 0,
+	})
+	rd.JSON(w, http.StatusOK, true)
+}
+
+func loginCheckHandler(w http.ResponseWriter, req *http.Request) {
+
+	cookie, err := req.Cookie(SessionID)
+	if err != nil {
+		rd.JSON(w, http.StatusOK, false)
+		return
+	}
+
+	findUser, err := util.RedisGet(red, cookie.Value)
+	if err != nil {
+		rd.JSON(w, http.StatusOK, false)
+		//해당 세션이 없으므로 쿠키 삭제
+		http.SetCookie(w, &http.Cookie{
+			Name:   SessionID,
+			Path:   "/",
+			Domain: "",
+			MaxAge: -1,
+		})
+		return
+	}
+
+	infoUser := loginMod.InfoUser{
+		ID:       findUser.ID,
+		Username: findUser.Username,
+		Name:     findUser.Name,
+		Age:      findUser.Age,
+		Email:    findUser.Email,
+	}
+
+	rd.JSON(w, http.StatusOK, infoUser)
+}
+
+func logoutHandler(w http.ResponseWriter, req *http.Request) {
+
+	//w.Header().Set("Cache-Control", "no-cache, private, max-age=0")
+
+	cookie, err := req.Cookie(SessionID)
+	if err != nil {
+		http.Redirect(w, req, "/", http.StatusMovedPermanently)
+		return
+	}
+
+	err = util.RedisDelete(red, cookie.Value)
+	if err != nil {
+		rd.JSON(w, http.StatusInternalServerError, false)
+		return
+	}
+	http.SetCookie(w, &http.Cookie{
+		Name:   SessionID,
+		Path:   "/",
+		Domain: "",
+		MaxAge: -1,
+	})
+
+	http.Redirect(w, req, "/", http.StatusMovedPermanently)
+}
+
+func authPageHandler(w http.ResponseWriter, req *http.Request) {
+
+	rd.HTML(w, http.StatusOK, "auth", "")
+}
+
+func myInfoPageHandler(w http.ResponseWriter, req *http.Request) {
+
+	rd.HTML(w, http.StatusOK, "myInfo", "")
 }
 
 type Success struct {
