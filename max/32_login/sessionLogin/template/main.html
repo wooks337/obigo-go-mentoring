@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css">
+    <meta charset="UTF-8">
+    <title>main</title>
+</head>
+<body>
+
+<h1>메인페이지</h1>
+<ul style="list-style-type: none" id="mainUl">
+<!--    <li style="float: left; margin-right: 10px"><a href="/login">로그인</a></li>-->
+<!--    <li><a href="/signup">회원가입</a></li>-->
+</ul>
+
+</body>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+
+<script>
+
+    $(document).ready(function () {
+
+        $("#mainUl").append('<li style="float: left; margin-right: 10px"><a href="/login">로그인</a></li>')
+        $("#mainUl").append(`<li><a href='/signup'>회원가입</a></li>`)
+    });
+
+</script>
+
+</html>
