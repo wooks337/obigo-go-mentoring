@@ -8,10 +8,9 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/unrolled/render"
 	"github.com/urfave/negroni"
-	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
-	"gorm.io/gorm/logger"
-	"jamie/09Login/domain"
+	"jamie/domain"
+	"jamie/service"
 	"log"
 	"net/http"
 )
@@ -27,6 +26,7 @@ func main() {
 	//render 패키지는 기본적으로 확장자를 tmpl로 읽는다
 	//html로 된 파일을 읽고 싶으면 옵션을 넣어줘야 한다
 	//html과 tmpl 확장자를 둘다 읽도록 옵션 설정
+
 	//render 패키지는 기본적으로 templates에서 찾는다.
 	//폴더명을 변경하고 싶을 때 옵션 설정
 	rd = render.New(render.Options{
@@ -48,17 +48,17 @@ func main() {
 	}
 
 	//mysql 연결
-	db, err = ConnectDB()
+	db, err = service.ConnectDB()
 	if err != nil {
 		err := fmt.Errorf("연결실패 : %v", err)
 		log.Println(err)
 	}
 	//테이블 생성
-	if err := db.AutoMigrate(&domain.User{}); err != nil {
-		fmt.Println("User Err")
-	} else {
-		fmt.Println("User Suc")
-	}
+	//if err := db.AutoMigrate(&domain.User{}); err != nil {
+	//	fmt.Println("User Err")
+	//} else {
+	//	fmt.Println("User Suc")
+	//}
 
 	log.Println("Started App")
 	err = http.ListenAndServe(":3000", n)
@@ -87,58 +87,109 @@ func initialize() (*redis.Client, error) {
 func MakeWebHandler() http.Handler {
 	m := mux.NewRouter()
 
-	//m.Handle("/", http.FileServer(http.Dir("templates")))		//왜 안됨?
 	m.HandleFunc("/", mainHandler).Methods("GET")
-	m.HandleFunc("/login", loginPageHandler).Methods("GET")
+	//m.HandleFunc("/idcheck", IDCheckHandler).Methods("GET")
 	m.HandleFunc("/signup", signupPageHandler).Methods("GET")
 	m.HandleFunc("/signup", signupHandler).Methods("POST")
+	m.HandleFunc("/login", loginPageHandler).Methods("GET")
+	m.HandleFunc("/login", loginHandler).Methods("POST")
 	return m
 }
+
+////메인 페이지
 func mainHandler(w http.ResponseWriter, r *http.Request) {
 	rd.HTML(w, http.StatusOK, "index", nil)
 }
-func loginPageHandler(w http.ResponseWriter, r *http.Request) {
-	rd.HTML(w, http.StatusOK, "login", nil)
-}
+
+//회원가입 페이지
 func signupPageHandler(w http.ResponseWriter, r *http.Request) {
 	rd.HTML(w, http.StatusOK, "signup", nil)
 }
 
+//func IDCheckHandler(w http.ResponseWriter, r *http.Request) {
+//
+//	var user domain.User
+//	err := json.NewDecoder(r.Body).Decode(&user) //json 형태로 파싱하기 위해 NewDecoder 함수로 요청의 body값을 decode함
+//	if err != nil {
+//		rd.JSON(w, http.StatusBadRequest, err.Error())
+//		return
+//	}
+//	//아이디 중복 체크
+//	idCheck := service.IDCheck(db, user.UserID)
+//	if idCheck == false {
+//		rd.JSON(w, http.StatusOK, "아이디 중복")
+//		return
+//	}
+//}
+
 //회원가입 핸들러
 func signupHandler(w http.ResponseWriter, r *http.Request) {
 
-	var user domain.User                         //user struct 형태의 json을 객체로 받아서
-	err := json.NewDecoder(r.Body).Decode(&user) //json 형태로 파싱하기 위해 NewDecoder 함수로 요청의 body값을 decode함
+	//User 구조체 형태의 json을 객체로 받아옴
+	var joinuser domain.JoinUser
+	//NewDecoder() : 요청 body값으로 들어온 json 데이터를 User구조체 형태로 변경(디코딩)
+	err := json.NewDecoder(r.Body).Decode(&joinuser)
 	if err != nil {
 		rd.JSON(w, http.StatusBadRequest, err.Error())
 		return
 	}
-	fmt.Println(user)
-	err = SignUp(db, user)
+	log.Println(joinuser) //데이터 잘 받아왔는지 확인
+
+	//아이디 중복 체크
+	idCheck := service.IDCheck(db, joinuser.UserID)
+	if idCheck == false {
+		rd.JSON(w, http.StatusOK, "아이디 중복")
+		return
+	}
+
+	//비밀번호 암호화
+	pwHash, err := service.PasswordHash(joinuser.Password)
+	if err != nil {
+		rd.JSON(w, http.StatusBadRequest, err.Error())
+		return
+	}
+	//변경 데이터(암호화 등) 저장용 데이터 객체화
+	user := domain.User{
+		UserID:   joinuser.UserID,
+		Password: pwHash,
+		Name:     joinuser.Name,
+		Email:    joinuser.Email,
+	}
+	//DB에 데이터 저장
+	err = service.SignUp(db, user)
 
 	if err != nil {
 		rd.JSON(w, http.StatusBadRequest, err.Error())
 		return
 	}
 	rd.JSON(w, http.StatusOK, true)
-
 }
 
-//mysql 서버 연결 함수
-func ConnectDB() (*gorm.DB, error) {
-	//dsn := "root:jamiekim@(localhost:3306)/testdb?charset=utf8mb4&parseTime=True&loc=Local"
-	dsn := "root:root@tcp(10.28.3.180:3307)/Jamie?charset=utf8mb4&parseTime=True&loc=Local"
-	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{
-		Logger: logger.Default.LogMode(logger.Info),
-	})
+//로그인 페이지
+func loginPageHandler(w http.ResponseWriter, r *http.Request) {
+	rd.HTML(w, http.StatusOK, "login", nil)
+}
+
+//로그인 핸들러
+func loginHandler(w http.ResponseWriter, r *http.Request) {
+
+	//LoginUser 구조체 형태의 json을 객체로 받아옴
+	var loginuser domain.LoginUser
+
+	//1.---사용자가 로그인 화면에서 데이터 입력시 해당 json 데이터를 받아 decode함
+	//NewDecoder() : 요청 body값으로 들어온 json 데이터를 LoginUser구조체 형태로 변경(디코딩)
+	err := json.NewDecoder(r.Body).Decode(&loginuser)
 	if err != nil {
-		panic(err)
+		rd.JSON(w, http.StatusBadRequest, err.Error()) //에러 발생 시, 400오류 반환
+		return
 	}
-	return db, err
-}
+	//디코딩한 유저정보 콘솔에서 확인
+	fmt.Println(loginuser)
 
-//db 데이터 저장 함수
-func SignUp(db *gorm.DB, user domain.User) error {
-	res := db.Create(&user)
-	return res.Error
+	//2.---DB의 회원정보와 입력받은 로그인 정보를 비교
+	findUser, err := service.FindUserByUserid(db, loginuser.UserID)
+	if err != nil {
+		rd.JSON(w, http.StatusOK, "잘못된 ID")
+		return
+	}
 }
