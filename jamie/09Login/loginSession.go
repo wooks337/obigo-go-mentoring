@@ -54,11 +54,11 @@ func main() {
 		log.Println(err)
 	}
 	//테이블 생성
-	//if err := db.AutoMigrate(&domain.User{}); err != nil {
-	//	fmt.Println("User Err")
-	//} else {
-	//	fmt.Println("User Suc")
-	//}
+	if err := db.AutoMigrate(&domain.User{}); err != nil {
+		fmt.Println("User Err")
+	} else {
+		fmt.Println("User Suc")
+	}
 
 	log.Println("Started App")
 	err = http.ListenAndServe(":3000", n)
@@ -93,6 +93,7 @@ func MakeWebHandler() http.Handler {
 	m.HandleFunc("/signup", signupHandler).Methods("POST")
 	m.HandleFunc("/login", loginPageHandler).Methods("GET")
 	m.HandleFunc("/login", loginHandler).Methods("POST")
+	m.HandleFunc("/logout", logoutHandler).Methods("GET")
 	return m
 }
 
@@ -143,7 +144,7 @@ func signupHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	//비밀번호 암호화
-	pwHash, err := service.PasswordHash(joinuser.Password)
+	pwHash, err := service.HashPassword(joinuser.Password)
 	if err != nil {
 		rd.JSON(w, http.StatusBadRequest, err.Error())
 		return
@@ -174,22 +175,61 @@ func loginPageHandler(w http.ResponseWriter, r *http.Request) {
 func loginHandler(w http.ResponseWriter, r *http.Request) {
 
 	//LoginUser 구조체 형태의 json을 객체로 받아옴
-	var loginuser domain.LoginUser
+	var loginUser domain.LoginUser
 
 	//1.---사용자가 로그인 화면에서 데이터 입력시 해당 json 데이터를 받아 decode함
-	//NewDecoder() : 요청 body값으로 들어온 json 데이터를 LoginUser구조체 형태로 변경(디코딩)
-	err := json.NewDecoder(r.Body).Decode(&loginuser)
+	//NewDecoder() : 요청 body값으로 들어온 json 데이터를 LoginUser 구조체 형태로 변경(디코딩)
+	err := json.NewDecoder(r.Body).Decode(&loginUser)
 	if err != nil {
 		rd.JSON(w, http.StatusBadRequest, err.Error()) //에러 발생 시, 400오류 반환
 		return
 	}
 	//디코딩한 유저정보 콘솔에서 확인
-	fmt.Println(loginuser)
+	fmt.Println(loginUser)
 
 	//2.---DB의 회원정보와 입력받은 로그인 정보를 비교
-	findUser, err := service.FindUserByUserid(db, loginuser.UserID)
+	//finduser = db에 저장된 회원정보
+	findUser, err := service.FindUserByUserid(db, loginUser.UserID)
 	if err != nil {
 		rd.JSON(w, http.StatusOK, "잘못된 ID")
 		return
 	}
+	//db저장 비밀번호와 로그인 시 입력한 비밀번호 비교
+	checkPassword := service.CheckPasswordHash(loginUser.Password, findUser.Password)
+	if checkPassword == false {
+		rd.JSON(w, http.StatusOK, "잘못된 PW")
+		return
+	}
+	//3.---로그인 시 사용자 세션 생성
+	session, err := service.RedisSessionCreate(cli, findUser)
+	if err != nil {
+		rd.JSON(w, http.StatusNoContent, err)
+	}
+	//쿠키에 세션 정보 저장
+	http.SetCookie(w, &http.Cookie{
+		Name:  "sessionID",
+		Value: session,
+		Path:  "/",
+	})
+	rd.JSON(w, http.StatusOK, nil)
+
+}
+func logoutHandler(w http.ResponseWriter, r *http.Request) {
+	//쿠키에 있는 세션 정보 가져오기
+	cookie, err := r.Cookie("sessionID")
+	if err != nil {
+		http.Redirect(w, r, "/", http.StatusOK)
+		return
+	}
+	//세션 삭제하기
+	err = service.RedisSessionDelete(cli, cookie.Value)
+	if err != nil {
+		rd.JSON(w, http.StatusInternalServerError, nil)
+		return
+	}
+	http.SetCookie(w, &http.Cookie{
+		Name: "sessionID",
+		Path: "/",
+	})
+	http.Redirect(w, r, "/", http.StatusOK)
 }
