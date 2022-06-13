@@ -105,7 +105,7 @@ func readJWTHandler(w http.ResponseWriter, req *http.Request) {
 	var claims userClaims
 	//var mapClaims jwt.MapClaims
 	tok, err := jwt.ParseWithClaims(cookie.Value, &claims, func(token *jwt.Token) (interface{}, error) {
-		return signKey, err
+		return signKey, nil
 	})
 	if err != nil {
 		//if ve, ok := err.(*jwt.ValidationError); ok {
