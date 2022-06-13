@@ -2,9 +2,7 @@ package main
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
-	"github.com/golang-jwt/jwt/v4"
 	"github.com/gorilla/mux"
 	"github.com/unrolled/render"
 	"github.com/urfave/negroni"
@@ -101,12 +99,7 @@ func authMiddleware(next http.Handler) http.Handler {
 				fmt.Println(cookie.Value)
 				_, err = util.JwtRead(cookie.Value)
 				if err != nil {
-					http.SetCookie(w, &http.Cookie{
-						Name:   JWT_COOKIE_ID,
-						Path:   "/",
-						Domain: "",
-						MaxAge: -1,
-					})
+					deleteCookie(w, JWT_COOKIE_ID)
 					authSuccess = false
 					break
 				}
@@ -220,8 +213,6 @@ func loginHandler(w http.ResponseWriter, req *http.Request) {
 
 func loginCheckHandler(w http.ResponseWriter, req *http.Request) {
 
-	w.Header().Set("Cache-Control", "no-cache, private, max-age=0")
-
 	cookie, err := req.Cookie(JWT_COOKIE_ID)
 	if err != nil || cookie.Value == "" {
 		rd.JSON(w, http.StatusOK, false)
@@ -231,17 +222,8 @@ func loginCheckHandler(w http.ResponseWriter, req *http.Request) {
 	infoUser, err := util.JwtRead(cookie.Value)
 	if err != nil {
 
-		http.SetCookie(w, &http.Cookie{
-			Name:   JWT_COOKIE_ID,
-			Path:   "/",
-			Domain: "",
-			MaxAge: -1,
-		})
-		if errors.Is(err, jwt.ErrTokenExpired) {
-			//	rd.JSON(w, http.StatusOK, false) //토큰만료
-			fmt.Println("JWT 기간 만료")
-			return
-		}
+		deleteCookie(w, JWT_COOKIE_ID)
+
 		rd.JSON(w, http.StatusOK, false)
 		return
 	}
@@ -251,18 +233,9 @@ func loginCheckHandler(w http.ResponseWriter, req *http.Request) {
 
 func logoutHandler(w http.ResponseWriter, req *http.Request) {
 
-	cookie, err := req.Cookie(JWT_COOKIE_ID)
-	if err != nil {
-		http.Redirect(w, req, "/", http.StatusMovedPermanently)
-		return
-	}
+	w.Header().Set("Cache-Control", "no-cache, private, max-age=0")
 
-	http.SetCookie(w, &http.Cookie{
-		Name:   cookie.Name,
-		Path:   "/",
-		Domain: "",
-		MaxAge: -1,
-	})
+	deleteCookie(w, JWT_COOKIE_ID)
 
 	http.Redirect(w, req, "/", http.StatusMovedPermanently)
 }
@@ -287,4 +260,13 @@ func ConnectDB() (*gorm.DB, error) {
 		Logger: logger.Default.LogMode(logger.Info), //-- 모든 SQL 실행문 로그로 확인
 	})
 	return db, err
+}
+
+func deleteCookie(w http.ResponseWriter, cookieName string) {
+	http.SetCookie(w, &http.Cookie{
+		Name:   cookieName,
+		Path:   "/",
+		Domain: "",
+		MaxAge: -1,
+	})
 }
