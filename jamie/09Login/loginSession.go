@@ -54,11 +54,11 @@ func main() {
 		log.Println(err)
 	}
 	//테이블 생성
-	if err := db.AutoMigrate(&domain.User{}); err != nil {
-		fmt.Println("User Err")
-	} else {
-		fmt.Println("User Suc")
-	}
+	//if err := db.AutoMigrate(&domain.User{}); err != nil {
+	//	fmt.Println("User Err")
+	//} else {
+	//	fmt.Println("User Suc")
+	//}
 
 	log.Println("Started App")
 	err = http.ListenAndServe(":3000", n)
@@ -94,6 +94,8 @@ func MakeWebHandler() http.Handler {
 	m.HandleFunc("/login", loginPageHandler).Methods("GET")
 	m.HandleFunc("/login", loginHandler).Methods("POST")
 	m.HandleFunc("/logout", logoutHandler).Methods("GET")
+
+	m.Use(DummyMiddleware)
 	return m
 }
 
@@ -184,22 +186,25 @@ func loginHandler(w http.ResponseWriter, r *http.Request) {
 		rd.JSON(w, http.StatusBadRequest, err.Error()) //에러 발생 시, 400오류 반환
 		return
 	}
-	//디코딩한 유저정보 콘솔에서 확인
-	fmt.Println(loginUser)
+	//디코딩한 로그인창 입력 유저정보 콘솔에서 확인
+	log.Println("==1.raw", loginUser.Password)
 
 	//2.---DB의 회원정보와 입력받은 로그인 정보를 비교
 	//finduser = db에 저장된 회원정보
 	findUser, err := service.FindUserByUserid(db, loginUser.UserID)
 	if err != nil {
-		rd.JSON(w, http.StatusOK, "잘못된 ID")
+		rd.JSON(w, http.StatusOK, "wrong ID")
 		return
 	}
-	//db저장 비밀번호와 로그인 시 입력한 비밀번호 비교
-	checkPassword := service.CheckPasswordHash(loginUser.Password, findUser.Password)
+	log.Println("==2.hash", findUser.Password)
+
+	//로그인 시 입력한 비밀번호와 db저장 비밀번호 비교
+	checkPassword := service.CheckHashPassword(findUser.Password, loginUser.Password)
 	if checkPassword == false {
-		rd.JSON(w, http.StatusOK, "잘못된 PW")
+		rd.JSON(w, http.StatusOK, "wrong PW")
 		return
 	}
+
 	//3.---로그인 시 사용자 세션 생성
 	session, err := service.RedisSessionCreate(cli, findUser)
 	if err != nil {
@@ -211,9 +216,11 @@ func loginHandler(w http.ResponseWriter, r *http.Request) {
 		Value: session,
 		Path:  "/",
 	})
-	rd.JSON(w, http.StatusOK, nil)
+	rd.JSON(w, http.StatusOK, true) //여기에 json 리턴값 nil로 줘서 결과값 계속 null 나옴... true로 줘야 정상적으로 alert 띄움~
 
 }
+
+//로그아웃 핸들러
 func logoutHandler(w http.ResponseWriter, r *http.Request) {
 	//쿠키에 있는 세션 정보 가져오기
 	cookie, err := r.Cookie("sessionID")
@@ -232,4 +239,14 @@ func logoutHandler(w http.ResponseWriter, r *http.Request) {
 		Path: "/",
 	})
 	http.Redirect(w, r, "/", http.StatusOK)
+}
+
+////미들웨어 테스트
+//정규식 : https://velog.io/@hsw0194/%EC%A0%95%EA%B7%9C%ED%91%9C%ED%98%84%EC%8B%9D-in-Go
+//미들웨어는 핸들러를 감싸는 구조, 핸들러를 파라미터로 전달
+func DummyMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		next.ServeHTTP(w, req)
+		log.Println("Middleware Test Dummy")
+	})
 }
