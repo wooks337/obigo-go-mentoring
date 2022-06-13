@@ -7,11 +7,12 @@ import (
 
 type User struct {
 	gorm.Model
-	Username string `gorm:"unique;not null" json:"username"`
-	Password string `gorm:"not null" json:"password"`
-	Name     string `gorm:"not null" json:"name"`
-	Age      int    `gorm:"not null" json:"age"`
-	Email    string `gorm:"not null" json:"email"`
+	Username     string `gorm:"unique;not null" json:"username"`
+	Password     string `gorm:"not null" json:"password"`
+	Name         string `gorm:"not null" json:"name"`
+	Age          int    `gorm:"not null" json:"age"`
+	Email        string `gorm:"not null" json:"email"`
+	RefreshToken string `json:"refreshToken"`
 }
 
 type SignupUser struct {

@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css">
+    <meta charset="UTF-8">
+    <title>main</title>
+</head>
+<body>
+
+<h1>메인페이지</h1>
+<p id="intro"></p>
+<ul style="list-style-type: none" id="mainUl">
+    <li style="float: left; margin-right: 10px"><a href="/auth">인증된 유저만 접근 가능</a></li>
+</ul>
+
+<img src="http://localhost:3000/static/image/winter.jpg" width="200" alt="윈터">
+<br>
+
+</body>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+
+<script>
+
+    $(document).ready(function () {
+
+        $.ajax({
+            url: "/login-check",
+            type: "POST",
+            success: function (data) {
+                if (data == false) {
+                    $("#mainUl").append('<li style="float: left; margin-right: 10px"><a href="/login">로그인</a></li>')
+                    $("#mainUl").append(`<li><a href='/signup'>회원가입</a></li>`)
+                } else {
+                    console.log(data)
+                    $("#intro").text(data["username"] + "님 안녕하세요.")
+                    $("#mainUl").append('<li style="float: left; margin-right: 10px"><a href="/auth/profile">내정보</a></li>')
+                    $("#mainUl").append('<li><a href="/logout">로그아웃</a></li>')
+                }
+            },
+            error: function () {
+                console.log("실패")
+                return
+            }
+        })
+    });
+
+</script>
+
+</html>

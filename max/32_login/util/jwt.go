@@ -8,8 +8,14 @@ import (
 
 const SIGN_KEY = "klasjdnzxcm,nzxn@sdk%sadj;sa"
 
-func JwtCreate(user domain.User) (string, error) {
+func JwtCreate(user domain.User, expires ...time.Time) (string, error) {
 
+	var expiresAt time.Time
+	if len(expires) == 0 {
+		expiresAt = time.Now().Add(time.Second * 10)
+	} else {
+		expiresAt = expires[0]
+	}
 	//payload 셋팅
 	claims := domain.ClaimUser{
 		ID:       user.ID,
@@ -18,7 +24,7 @@ func JwtCreate(user domain.User) (string, error) {
 		Age:      user.Age,
 		Email:    user.Email,
 		RegisteredClaims: jwt.RegisteredClaims{
-			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Minute * 1)),
+			ExpiresAt: jwt.NewNumericDate(expiresAt),
 		},
 	}
 

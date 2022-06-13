@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css">
+    <meta charset="UTF-8">
+    <title>main</title>
+</head>
+<body>
+
+<h1>인증유저만 접근 가능</h1>
+<p id="intro"></p>
+<ul style="list-style-type: none" id="mainUl">
+    <li style="float: left; margin-right: 10px"><a href="/">홈</a></li>
+    <li><a href="/logout">로그아웃</a></li>
+</ul>
+
+<form id="myInfoForm">
+    <span>ID</span>
+    <input readonly name="username" id="username" type="text">
+    <br><br>
+
+    <span>Name</span>
+    <input readonly name="name" id="name" type="text">
+    <br><br>
+
+    <span>Age</span>
+    <input readonly name="age" id="age" type="number">
+    <br><br>
+
+    <span>Email</span>
+    <input readonly name="email" id="email" type="text">
+    <br><br>
+</form>
+
+</body>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+
+<script>
+
+    $(document).ready(function () {
+        $.ajax({
+            url: "/login-check",
+            type: "POST",
+            success: function (data){
+                $("#intro").text(data["username"]+ "님 안녕하세요.")
+                $('#username').val(data["username"])
+                $('#name').val(data["name"])
+                $('#age').val(data["age"])
+                $('#email').val(data["email"])
+            },
+            error: function (){
+                console.log("실패")
+                return
+            }
+        })
+    });
+
+</script>
+
+</html>

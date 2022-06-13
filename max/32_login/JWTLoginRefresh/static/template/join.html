@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css">
+    <meta charset="UTF-8">
+    <title>main</title>
+</head>
+<body>
+
+<ul style="list-style-type: none" id="mainUl">
+    <li style="float: left; margin-right: 10px"><a href="/">홈</a></li>
+    <li><a href="/login">로그인</a></li>
+</ul>
+<h1>회원가입 페이지</h1>
+<form id="signupForm">
+    <span>ID</span>
+    <input name="username" type="text">
+    <br><br>
+
+    <span>Password</span>
+    <input name="password" type="password">
+    <br><br>
+
+    <span>Name</span>
+    <input name="name" type="text">
+    <br><br>
+
+    <span>Age</span>
+    <input name="age" type="number">
+    <br><br>
+
+    <span>Email</span>
+    <input name="email" type="text">
+    <br><br>
+
+    <button type="button" id="btnJoin">회원가입</button>
+</form>
+
+</body>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+<!-- ❹ AJAX 쿼리를 사용가능하게 jquery 사용 -->
+<script>
+
+    $("#btnJoin").on('click', function (){
+
+        let formSerializeArray = $('#signupForm').serializeArray()
+        var object = {};
+        for (var i = 0; i < formSerializeArray.length; i++){
+            object[formSerializeArray[i]['name']] = formSerializeArray[i]['value'];
+        }
+        var jsonUser = JSON.stringify(object)
+        console.log(jsonUser)
+
+        $.ajax({
+            url: "/signup",
+            type: "POST",
+            data: jsonUser,
+            success: function (data){
+                if(data == true){
+                    console.log("성공")
+                    alert("회원가입 성공")
+                    window.location.replace("/")
+                    return
+                } else {
+                    alert(data)
+                    return
+                }
+            },
+            error: function (){
+                console.log("실패")
+            }
+        })
+    })
+
+</script>
+
+</html>
