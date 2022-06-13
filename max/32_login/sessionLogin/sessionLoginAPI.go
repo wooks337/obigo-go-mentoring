@@ -12,7 +12,7 @@ import (
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 	"log"
-	"loginMod"
+	"loginMod/domain"
 	"loginMod/service"
 	"loginMod/util"
 	"net/http"
@@ -62,7 +62,7 @@ func main() {
 	//	fmt.Println("User Suc")
 	//}
 
-	log.Println("Started App")
+	log.Println("Session Login Started App")
 	err = http.ListenAndServe(":3000", n)
 	if err != nil {
 		panic(err)
@@ -145,7 +145,7 @@ func signupPageHandler(w http.ResponseWriter, req *http.Request) {
 
 func signupHandler(w http.ResponseWriter, req *http.Request) {
 
-	var signupUser loginMod.SignupUser
+	var signupUser domain.SignupUser
 	err := json.NewDecoder(req.Body).Decode(&signupUser)
 	if err != nil {
 		rd.JSON(w, http.StatusBadRequest, err.Error())
@@ -166,7 +166,7 @@ func signupHandler(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	user := loginMod.User{
+	user := domain.User{
 		Username: signupUser.Username,
 		Password: passwordHash,
 		Name:     signupUser.Name,
@@ -185,7 +185,7 @@ func signupHandler(w http.ResponseWriter, req *http.Request) {
 
 func loginHandler(w http.ResponseWriter, req *http.Request) {
 
-	var loginUser loginMod.LoginUser
+	var loginUser domain.LoginUser
 	err := json.NewDecoder(req.Body).Decode(&loginUser)
 	if err != nil {
 		rd.JSON(w, http.StatusBadRequest, err.Error())
@@ -242,7 +242,7 @@ func loginCheckHandler(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	infoUser := loginMod.InfoUser{
+	infoUser := domain.InfoUser{
 		ID:       findUser.ID,
 		Username: findUser.Username,
 		Name:     findUser.Name,

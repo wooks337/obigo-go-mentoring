@@ -1,6 +1,9 @@
-package loginMod
+package domain
 
-import "gorm.io/gorm"
+import (
+	"github.com/golang-jwt/jwt/v4"
+	"gorm.io/gorm"
+)
 
 type User struct {
 	gorm.Model
@@ -30,4 +33,13 @@ type InfoUser struct {
 	Name     string `json:"name"`
 	Age      int    `json:"age"`
 	Email    string `json:"email"`
+}
+
+type ClaimUser struct {
+	ID       uint   `json:"id"`
+	Username string `json:"username"`
+	Name     string `json:"name"`
+	Age      int    `json:"age"`
+	Email    string `json:"email"`
+	jwt.RegisteredClaims
 }

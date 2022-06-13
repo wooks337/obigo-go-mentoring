@@ -2,10 +2,10 @@ package service
 
 import (
 	"gorm.io/gorm"
-	"loginMod"
+	"loginMod/domain"
 )
 
-func Signup(db *gorm.DB, user loginMod.User) error {
+func Signup(db *gorm.DB, user domain.User) error {
 
 	result := db.Create(&user)
 
@@ -14,8 +14,8 @@ func Signup(db *gorm.DB, user loginMod.User) error {
 
 func UsernameDuplicateCheck(db *gorm.DB, username string) bool {
 
-	findUser := loginMod.User{}
-	result := db.Model(&loginMod.User{}).First(&findUser, "username = ?", username)
+	findUser := domain.User{}
+	result := db.Model(&domain.User{}).First(&findUser, "username = ?", username)
 	if result.Error != nil {
 		return true
 	} else {
@@ -23,8 +23,8 @@ func UsernameDuplicateCheck(db *gorm.DB, username string) bool {
 	}
 }
 
-func FindUserByUsername(db *gorm.DB, username string) (loginMod.User, error) {
-	findUser := loginMod.User{}
-	result := db.Model(&loginMod.User{}).First(&findUser, "username = ?", username)
+func FindUserByUsername(db *gorm.DB, username string) (domain.User, error) {
+	findUser := domain.User{}
+	result := db.Model(&domain.User{}).First(&findUser, "username = ?", username)
 	return findUser, result.Error
 }

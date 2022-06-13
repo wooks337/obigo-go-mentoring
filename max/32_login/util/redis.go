@@ -5,11 +5,11 @@ import (
 	"encoding/json"
 	"github.com/go-redis/redis/v9"
 	"github.com/google/uuid"
-	"loginMod"
+	"loginMod/domain"
 	"time"
 )
 
-func RedisSave(red *redis.Client, user loginMod.User) (string, error) {
+func RedisSave(red *redis.Client, user domain.User) (string, error) {
 	newUUID, err := uuid.NewUUID()
 	if err != nil {
 		return "", err
@@ -22,9 +22,9 @@ func RedisSave(red *redis.Client, user loginMod.User) (string, error) {
 	return newUUID.String(), err
 }
 
-func RedisGet(red *redis.Client, sessionId string) (loginMod.User, error) {
+func RedisGet(red *redis.Client, sessionId string) (domain.User, error) {
 
-	var findUser loginMod.User
+	var findUser domain.User
 	value, err := red.Get(context.TODO(), sessionId).Result()
 
 	if err != nil {
