@@ -28,3 +28,23 @@ func FindUserByUsername(db *gorm.DB, username string) (domain.User, error) {
 	result := db.Model(&domain.User{}).First(&findUser, "username = ?", username)
 	return findUser, result.Error
 }
+
+func UpdateRefreshToken(db *gorm.DB, id uint, refreshToken string) bool {
+
+	user := domain.User{}
+	res := db.First(&user, id)
+	if res.Error != nil {
+		return false
+	}
+
+	//res = db.Model(&user).Updates(domain.User{RefreshToken: refreshToken})
+	res = db.Model(&user).Updates(map[string]interface{}{
+		"refresh_token": refreshToken,
+	})
+
+	if res.Error != nil || res.RowsAffected == 0 {
+		return false
+	} else {
+		return true
+	}
+}
