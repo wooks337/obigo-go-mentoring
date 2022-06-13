@@ -24,3 +24,11 @@ type LoginUser struct {
 	UserID   string `json:"userid"`
 	Password string `json:"password"`
 }
+
+//회원 페이지용
+type InfoUser struct {
+	ID     uint   `json:"id"`
+	UserID string `json:"userid"`
+	Name   string `json:"name"`
+	Email  string `json:"email"`
+}

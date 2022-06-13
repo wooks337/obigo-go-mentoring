@@ -18,6 +18,16 @@ func RedisSessionCreate(cli *redis.Client, user domain.User) (string, error) {
 	_, err = cli.Set(ctx, newUUID.String(), marshal, time.Hour*1).Result()
 	return newUUID.String(), err
 }
+func RedisSessionRead(cli *redis.Client, sessionID string) (domain.User, error) {
+	var findUser domain.User
+	val, err := cli.Get(ctx, sessionID).Result()
+	if err != nil {
+		return findUser, err
+	}
+	bytes := []byte(val)
+	err = json.Unmarshal(bytes, &findUser)
+	return findUser, err
+}
 
 func RedisSessionDelete(cli *redis.Client, sessionID string) error {
 	_, err := cli.Del(ctx, sessionID).Result()

@@ -13,6 +13,7 @@ import (
 	"jamie/service"
 	"log"
 	"net/http"
+	"regexp"
 )
 
 var (
@@ -93,9 +94,12 @@ func MakeWebHandler() http.Handler {
 	m.HandleFunc("/signup", signupHandler).Methods("POST")
 	m.HandleFunc("/login", loginPageHandler).Methods("GET")
 	m.HandleFunc("/login", loginHandler).Methods("POST")
+	m.HandleFunc("/logincheck", loginCheckHandler).Methods("POST")
 	m.HandleFunc("/logout", logoutHandler).Methods("GET")
+	m.HandleFunc("/userpage", userPageHandler).Methods("GET")
 
-	m.Use(DummyMiddleware)
+	m.Use(authMiddleware)
+	//m.Use(DummyMiddleware)
 	return m
 }
 
@@ -225,7 +229,7 @@ func logoutHandler(w http.ResponseWriter, r *http.Request) {
 	//쿠키에 있는 세션 정보 가져오기
 	cookie, err := r.Cookie("sessionID")
 	if err != nil {
-		http.Redirect(w, r, "/", http.StatusOK)
+		http.Redirect(w, r, "/", http.StatusMovedPermanently)
 		return
 	}
 	//세션 삭제하기
@@ -241,12 +245,88 @@ func logoutHandler(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/", http.StatusOK)
 }
 
+//로그인 체크 핸들러
+func loginCheckHandler(w http.ResponseWriter, r *http.Request) {
+	cookie, err := r.Cookie("sessionID")
+	if err != nil {
+		rd.JSON(w, http.StatusOK, false)
+		return
+	}
+	findUser, err := service.RedisSessionRead(cli, cookie.Value)
+	if err != nil {
+		rd.JSON(w, http.StatusOK, false)
+		http.SetCookie(w, &http.Cookie{
+			Name:   "sessionID",
+			Path:   "/",
+			Domain: "",
+			MaxAge: -1,
+		})
+		return
+	}
+	infoUser := domain.InfoUser{
+		ID:     findUser.ID,
+		UserID: findUser.UserID,
+		Name:   findUser.Name,
+		Email:  findUser.Email,
+	}
+	rd.JSON(w, http.StatusOK, infoUser)
+}
+
+//회원 페이지
+func userPageHandler(w http.ResponseWriter, r *http.Request) {
+	rd.HTML(w, http.StatusOK, "userpage", nil)
+}
+
 ////미들웨어 테스트
+//https://www.notion.so/Gorilla-7621ae82b7df423fb6033919612b96db#6ec6dc0c13b74ac3a8809fe91cd4c797
+//https://eli.thegreenplace.net/2021/life-of-an-http-request-in-a-go-server/
+//func DummyMiddleware(next http.Handler) http.Handler {
+//	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+//		log.Println("Middleware Test Dummy")
+//		next.ServeHTTP(w, r)
+//		log.Println("Middle execute")
+//	})
+//}
+
+var rpath = regexp.MustCompile(`/userpage`)
+
+//회원 인증 미들웨어
 //정규식 : https://velog.io/@hsw0194/%EC%A0%95%EA%B7%9C%ED%91%9C%ED%98%84%EC%8B%9D-in-Go
 //미들웨어는 핸들러를 감싸는 구조, 핸들러를 파라미터로 전달
-func DummyMiddleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
-		next.ServeHTTP(w, req)
-		log.Println("Middleware Test Dummy")
+func authMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		log.Println("Middleware running")
+		w.Header().Set("Cache-Control", "no-cache, private, max-age=0")
+
+		path := r.URL.Path
+		log.Println("run : ", path)
+
+		authSuccess := true
+
+		switch {
+		case rpath.MatchString(path):
+			{
+				cookie, err := r.Cookie("sessionID")
+
+				if err != nil {
+					authSuccess = false
+					break
+				}
+				_, err = service.RedisSessionRead(cli, cookie.Value)
+				if err != nil {
+					authSuccess = false
+					break
+				}
+			}
+		default:
+			log.Println("authentication no needed")
+		}
+		if authSuccess {
+			log.Println("authentication success")
+			next.ServeHTTP(w, r)
+		} else {
+			log.Println("authentication failed")
+			http.Redirect(w, r, "/login", http.StatusMovedPermanently)
+		}
 	})
 }
