@@ -28,7 +28,7 @@ const SessionID = "sessionId"
 
 func main() {
 	rd = render.New(render.Options{
-		Directory:  "sessionLogin/static/template",
+		Directory:  "SessionLogin/static/template",
 		Extensions: []string{".html", ".tmpl"},
 	})
 	mux := makeWebHandler()
@@ -72,8 +72,8 @@ func main() {
 func makeWebHandler() http.Handler {
 	router := mux.NewRouter()
 	////https://stackoverflow.com/questions/21234639/golang-gorilla-mux-with-http-fileserver-returning-404
-	//router.Handle("/static/{rest}", http.StripPrefix("/static/", http.FileServer(http.Dir("sessionLogin/static/image"))))
-	router.Handle("/static/{rest}/{file}", http.StripPrefix("/static/", http.FileServer(http.Dir("sessionLogin/static/"))))
+	//router.Handle("/static/{rest}", http.StripPrefix("/static/", http.FileServer(http.Dir("SessionLogin/static/image"))))
+	router.Handle("/static/{rest}/{file}", http.StripPrefix("/static/", http.FileServer(http.Dir("SessionLogin/static/"))))
 	router.HandleFunc("/", mainHandler).Methods("GET")
 	router.HandleFunc("/login", loginPageHandler).Methods("GET")
 	router.HandleFunc("/login", loginHandler).Methods("POST")
