@@ -71,8 +71,6 @@ func googleAuthCallback(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprint(w, string(data)) // -- 3-2
 }
 
-const oauthGoogleUrlAPI = "https://www.googleapis.com/oauth2/v2/userinfo?access_token="
-
 //구글에서 유저정보 가져오기
 func getGoogleUserInfo(code string) ([]byte, error) {
 	token, err := auth.GoogleOauthConfig.Exchange(ctx, code)
@@ -80,7 +78,7 @@ func getGoogleUserInfo(code string) ([]byte, error) {
 		return nil, fmt.Errorf("Failed to Exchange %s\n", err.Error())
 	}
 
-	resp, err := http.Get(oauthGoogleUrlAPI + token.AccessToken)
+	resp, err := http.Get(auth.OauthGoogleUrlAPI + token.AccessToken)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to get userInfo %s\n", err.Error())
 	}

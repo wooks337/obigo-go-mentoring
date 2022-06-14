@@ -10,16 +10,23 @@ import (
 	"time"
 )
 
+const (
+	CallbackURL       = "http://localhost:3000/auth/google/callback"
+	OauthGoogleUrlAPI = "https://www.googleapis.com/oauth2/v2/userinfo?access_token="
+	ScopeEmail        = "https://www.googleapis.com/auth/userinfo.email"
+	ScopeProfile      = "https://www.googleapis.com/auth/userinfo.profile"
+)
+
 //oauth2.Config
 //Redirect URL : 구글에서 인증완료 후 정보를 callback 할 주소
 //ClientID, ClientSecret : 시스템 환경변수에 설정한 값 불러오기
 //Scope : 구글 접근 범위 설정(이메일에 접근)
 //Endpoint : ???
 var GoogleOauthConfig = oauth2.Config{
-	RedirectURL:  "http://localhost:3000/auth/google/callback",
+	RedirectURL:  CallbackURL,
 	ClientID:     os.Getenv("GOOGLE_CLIENT_ID"),
 	ClientSecret: os.Getenv("GOOGLE_SECRET_KEY"),
-	Scopes:       []string{"https://www.googleapis.com/auth/userinfo.email"},
+	Scopes:       []string{ScopeEmail, ScopeProfile},
 	Endpoint:     google.Endpoint,
 }
 
