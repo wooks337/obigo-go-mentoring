@@ -9,6 +9,7 @@ import (
 	"github.com/unrolled/render"
 	"github.com/urfave/negroni"
 	"gorm.io/gorm"
+	"io/ioutil"
 	"jamie/domain"
 	"jamie/service"
 	"log"
@@ -17,21 +18,24 @@ import (
 )
 
 var (
-	rd  *render.Render
-	cli *redis.Client
-	db  *gorm.DB
-	ctx = context.Background()
+	rd    *render.Render
+	cli   *redis.Client
+	db    *gorm.DB
+	ctx   = context.Background()
+	rpath = regexp.MustCompile(`/userpage`)
 )
+
+const oauthGoogleUrlAPI = "https://www.googleapis.com/oauth2/v2/userinfo?access_token="
 
 func main() {
 	//render 패키지는 기본적으로 확장자를 tmpl로 읽는다
 	//html로 된 파일을 읽고 싶으면 옵션을 넣어줘야 한다
 	//html과 tmpl 확장자를 둘다 읽도록 옵션 설정
-
+	//
 	//render 패키지는 기본적으로 templates에서 찾는다.
 	//폴더명을 변경하고 싶을 때 옵션 설정
 	rd = render.New(render.Options{
-		Directory:  "09Login/templates",
+		Directory:  "templates",
 		Extensions: []string{".html", ".tmpl"},
 	})
 	mux := MakeWebHandler()
@@ -97,6 +101,9 @@ func MakeWebHandler() http.Handler {
 	m.HandleFunc("/logincheck", loginCheckHandler).Methods("POST")
 	m.HandleFunc("/logout", logoutHandler).Methods("GET")
 	m.HandleFunc("/userpage", userPageHandler).Methods("GET")
+
+	m.HandleFunc("/auth/google/login", googleLoginHandler)
+	m.HandleFunc("/auth/google/callback", googleAuthCallback)
 
 	m.Use(authMiddleware)
 	//m.Use(DummyMiddleware)
@@ -288,7 +295,71 @@ func userPageHandler(w http.ResponseWriter, r *http.Request) {
 //	})
 //}
 
-var rpath = regexp.MustCompile(`/userpage`)
+//구글 로그인 핸들러
+func googleLoginHandler(w http.ResponseWriter, r *http.Request) {
+	state := service.GenerateStateOauthCookie(w)
+	url := service.GoogleOauthConfig.AuthCodeURL(state)
+	http.Redirect(w, r, url, http.StatusTemporaryRedirect)
+}
+
+//구글 콜백 핸들러
+func googleAuthCallback(w http.ResponseWriter, r *http.Request) {
+	oauthstate, _ := r.Cookie("oauthstate") // -- 1
+
+	if r.FormValue("state") != oauthstate.Value { // -- 2
+		log.Printf("invalid google oauth state cookie : %s state : %s\n", oauthstate.Value, r.FormValue("state"))
+		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
+		return
+	}
+
+	data, err := getGoogleUserInfo(r.FormValue("code")) // -- 3
+	if err != nil {
+		log.Println(err.Error())
+		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
+		return
+	} // -- 3-1
+
+	fmt.Println(string(data))
+
+	//GoogleUser 구조체 형태의 json을 객체로 받아옴
+	var googleuser domain.GoogleUser
+
+	err = json.Unmarshal(data, &googleuser)
+	if err != nil {
+		rd.JSON(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	//변경 데이터(암호화 등) 저장용 데이터 객체화
+	user2 := domain.User{
+		UserID: googleuser.ID,
+		Name:   googleuser.Name,
+		Email:  googleuser.Email,
+	}
+
+	//DB에 데이터 저장
+	err = service.SignUp(db, user2)
+	if err != nil {
+		rd.JSON(w, http.StatusBadRequest, err.Error())
+		return
+	}
+	rd.HTML(w, http.StatusOK, "index", nil)
+}
+
+//구글에서 유저정보 가져오기
+func getGoogleUserInfo(code string) ([]byte, error) {
+	token, err := service.GoogleOauthConfig.Exchange(ctx, code)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to Exchange %s\n", err.Error())
+	}
+
+	resp, err := http.Get(oauthGoogleUrlAPI + token.AccessToken)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to get userInfo %s\n", err.Error())
+	}
+	return ioutil.ReadAll(resp.Body)
+
+}
 
 //회원 인증 미들웨어
 //정규식 : https://velog.io/@hsw0194/%EC%A0%95%EA%B7%9C%ED%91%9C%ED%98%84%EC%8B%9D-in-Go

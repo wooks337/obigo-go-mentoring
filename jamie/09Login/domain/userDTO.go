@@ -32,3 +32,10 @@ type InfoUser struct {
 	Name   string `json:"name"`
 	Email  string `json:"email"`
 }
+
+//구글로그인 유저용
+type GoogleUser struct {
+	ID    string `json:"id"`
+	Name  string `json:"name"`
+	Email string `json:"email"`
+}
