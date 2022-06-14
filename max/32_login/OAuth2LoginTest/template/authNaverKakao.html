@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head></head>
+<body>
+<!--<a href="{{ . }}">Google Login</a>-->
+<a id="kakaoUrl">Kakao Login</a>
+<a id="naverUrl">Naver Login</a>
+
+</body>
+</html>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+<script>
+    $(document).ready(function () {
+        $.ajax({
+            url: "/authUrl",
+            type: "GET",
+            success: function (data) {
+                console.log(data)
+                $("#kakaoUrl").attr("href", data["kakao"])
+                $("#naverUrl").attr("href", data["naver"])
+                return
+            },
+            error: function () {
+                console.log("실패")
+                return
+            }
+        })
+    });
+</script>

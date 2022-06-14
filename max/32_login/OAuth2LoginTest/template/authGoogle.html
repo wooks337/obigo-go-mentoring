@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head></head>
+<body>
+<!-- href는 로그인 핸들러로부터 반환 받은 Google 로그인 링크가 담긴다 -->
+<!--<a href="{{ . }}">Google Login</a>-->
+<a id="googleUrl">Google Login</a>
+
+</body>
+</html>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+<script>
+    $(document).ready(function () {
+        $.ajax({
+            url: "/authUrl",
+            type: "GET",
+            success: function (data) {
+                console.log(data)
+                $("#googleUrl").attr("href", data)
+                return
+            },
+            error: function () {
+                console.log("실패")
+                return
+            }
+        })
+    });
+</script>
