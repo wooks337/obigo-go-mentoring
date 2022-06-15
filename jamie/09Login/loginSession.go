@@ -93,7 +93,6 @@ func MakeWebHandler() http.Handler {
 	m := mux.NewRouter()
 
 	m.HandleFunc("/", mainHandler).Methods("GET")
-	//m.HandleFunc("/idcheck", IDCheckHandler).Methods("GET")
 	m.HandleFunc("/signup", signupPageHandler).Methods("GET")
 	m.HandleFunc("/signup", signupHandler).Methods("POST")
 	m.HandleFunc("/login", loginPageHandler).Methods("GET")
@@ -119,22 +118,6 @@ func mainHandler(w http.ResponseWriter, r *http.Request) {
 func signupPageHandler(w http.ResponseWriter, r *http.Request) {
 	rd.HTML(w, http.StatusOK, "signup", nil)
 }
-
-//func IDCheckHandler(w http.ResponseWriter, r *http.Request) {
-//
-//	var user domain.User
-//	err := json.NewDecoder(r.Body).Decode(&user) //json 형태로 파싱하기 위해 NewDecoder 함수로 요청의 body값을 decode함
-//	if err != nil {
-//		rd.JSON(w, http.StatusBadRequest, err.Error())
-//		return
-//	}
-//	//아이디 중복 체크
-//	idCheck := service.IDCheck(db, user.UserID)
-//	if idCheck == false {
-//		rd.JSON(w, http.StatusOK, "아이디 중복")
-//		return
-//	}
-//}
 
 //회원가입 핸들러
 func signupHandler(w http.ResponseWriter, r *http.Request) {
@@ -300,10 +283,81 @@ func googleLoginHandler(w http.ResponseWriter, r *http.Request) {
 	state := service.GenerateStateOauthCookie(w)
 	url := service.GoogleOauthConfig.AuthCodeURL(state)
 	http.Redirect(w, r, url, http.StatusTemporaryRedirect)
+
+	//<<session>>
+
+	//  state := auth.RandToken()
+	//	newUUID, _ := uuid.NewUUID()
+	//
+	//	//Redis Session Create
+	//	//=== 1 세션에 state 값(임의값) 저장
+	//	//=== 2 생성된 세션 id 쿠키에 담아 응답으로 전달
+	//	res, err := cli.Set(ctx, newUUID.String(), state, time.Hour*1).Result() //---1
+	//	if err != nil {
+	//		rd.JSON(w, http.StatusInternalServerError, err.Error())
+	//	}
+	//	fmt.Println(res)
+	//
+	//	http.SetCookie(w, &http.Cookie{ //---2
+	//		Name:  "sessionID",
+	//		Value: newUUID.String(),
+	//		Path:  "/",
+	//	})
+	//
+	//	url := service.GoogleOauthConfig.AuthCodeURL(state)
+	//  rd.JSON(w, http.StatusOK, url)
+
 }
 
 //구글 콜백 핸들러
 func googleAuthCallback(w http.ResponseWriter, r *http.Request) {
+	//<<session>>
+
+	//=== 1. 아까 만든 쿠키 호출
+	//=== 2. 쿠키에서 state값 꺼내기
+	//=== 3. 호출한 쿠키 값과 state 값이 다른 경우, 잘못된 요청으로 간주하여 "/"로 리다이렉트. 오류 내용은 로그로 남기기
+	//	oauthstate, _ := r.Cookie("oauthstate") // -- 1
+	//	state, _ := cli.Get(context.TODO(), oauthstate.Value).Result() //--2
+	//	if r.FormValue("state") != state { // -- 2
+	//		log.Printf("invalid google oauth state cookie : %s state : %s\n", oauthstate.Value, r.FormValue("state"))
+	//		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
+	//		return
+	//	}
+	//
+	//	data, err := getGoogleUserInfo(r.FormValue("code")) // -- 3
+	//	if err != nil {
+	//		log.Println(err.Error())
+	//		rd.JSON(w, http.StatusBadRequest, "유저정보 읽기 실패")
+	//		return
+	//	}
+	//
+	//	fmt.Println(string(data))
+	//
+	//	//GoogleUser 구조체 형태의 json을 객체로 받아옴
+	//	var googleuser domain.GoogleUser
+	//
+	//	err = json.Unmarshal(data, &googleuser)
+	//	if err != nil {
+	//		rd.JSON(w, http.StatusBadRequest, err.Error())
+	//		return
+	//	}
+	//
+	//	//변경 데이터 저장용 데이터 객체화
+	//	user2 := domain.User{
+	//		UserID: googleuser.ID,
+	//		Name:   googleuser.Name,
+	//		Email:  googleuser.Email,
+	//	}
+	//
+	//	//DB에 데이터 저장
+	//	err = service.SignUp(db, user2)
+	//	if err != nil {
+	//		rd.JSON(w, http.StatusBadRequest, err.Error())
+	//		return
+	//	}
+	//	rd.HTML(w, http.StatusOK, "index", nil)
+	//}
+
 	oauthstate, _ := r.Cookie("oauthstate") // -- 1
 
 	if r.FormValue("state") != oauthstate.Value { // -- 2

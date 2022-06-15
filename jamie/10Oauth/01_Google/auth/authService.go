@@ -11,10 +11,13 @@ import (
 )
 
 const (
-	CallbackURL       = "http://localhost:3000/auth/google/callback"
+	GoogleCallbackURL = "http://localhost:3000/auth/google/callback"
 	OauthGoogleUrlAPI = "https://www.googleapis.com/oauth2/v2/userinfo?access_token="
 	ScopeEmail        = "https://www.googleapis.com/auth/userinfo.email"
 	ScopeProfile      = "https://www.googleapis.com/auth/userinfo.profile"
+
+	KakaoCallbackURL = "http://localhost:3000/auth/kakao/callback"
+	OauthKakaoUrlAPI = "https://kauth.kakao.com/oauth/authorize?response_type=code&client_id=${REST_API_KEY}&redirect_uri=${REDIRECT_URI}"
 )
 
 //oauth2.Config
@@ -23,11 +26,22 @@ const (
 //Scope : 구글 접근 범위 설정(이메일에 접근)
 //Endpoint : ???
 var GoogleOauthConfig = oauth2.Config{
-	RedirectURL:  CallbackURL,
+	RedirectURL:  GoogleCallbackURL,
 	ClientID:     os.Getenv("GOOGLE_CLIENT_ID"),
 	ClientSecret: os.Getenv("GOOGLE_SECRET_KEY"),
 	Scopes:       []string{ScopeEmail, ScopeProfile},
 	Endpoint:     google.Endpoint,
+}
+
+var KakaoOauthConfig = oauth2.Config{
+	RedirectURL:  KakaoCallbackURL,
+	ClientID:     "-",
+	ClientSecret: "-",
+	Scopes:       []string{"profile_nickname", "account_email"},
+	Endpoint: oauth2.Endpoint{
+		AuthURL:  "https://kauth.kakao.com/oauth/authorize",
+		TokenURL: "https://kauth.kakao.com/oauth/token",
+	},
 }
 
 //cookie에 일회용 비밀번호 저장

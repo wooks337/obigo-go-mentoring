@@ -27,6 +27,9 @@ func main() {
 func MakeWebHandler() http.Handler {
 	m := mux.NewRouter()
 
+	m.HandleFunc("/auth/kakao/login", kakaoLoginHandler)
+	m.HandleFunc("/auth/kakao/callback", kakaoAuthCallback)
+
 	m.HandleFunc("/auth/google/login", googleLoginHandler)
 	m.HandleFunc("/auth/google/callback", googleAuthCallback)
 	return m
@@ -43,6 +46,11 @@ func MakeWebHandler() http.Handler {
 func googleLoginHandler(w http.ResponseWriter, r *http.Request) {
 	state := auth.GenerateStateOauthCookie(w)
 	url := auth.GoogleOauthConfig.AuthCodeURL(state)
+	http.Redirect(w, r, url, http.StatusTemporaryRedirect)
+}
+func kakaoLoginHandler(w http.ResponseWriter, r *http.Request) {
+	state := auth.GenerateStateOauthCookie(w)
+	url := auth.KakaoOauthConfig.AuthCodeURL(state)
 	http.Redirect(w, r, url, http.StatusTemporaryRedirect)
 }
 
@@ -70,6 +78,24 @@ func googleAuthCallback(w http.ResponseWriter, r *http.Request) {
 
 	fmt.Fprint(w, string(data)) // -- 3-2
 }
+func kakaoAuthCallback(w http.ResponseWriter, r *http.Request) {
+	oauthstate, _ := r.Cookie("oauthstate") // -- 1
+
+	if r.FormValue("state") != oauthstate.Value { // -- 2
+		log.Printf("invalid google oauth state cookie : %s state : %s\n", oauthstate.Value, r.FormValue("state"))
+		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
+		return
+	}
+
+	data, err := getKakaoUserInfo(r.FormValue("code")) // -- 3
+	if err != nil {
+		log.Println(err.Error())
+		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
+		return
+	} // -- 3-1
+
+	fmt.Fprint(w, string(data)) // -- 3-2
+}
 
 //구글에서 유저정보 가져오기
 func getGoogleUserInfo(code string) ([]byte, error) {
@@ -84,4 +110,17 @@ func getGoogleUserInfo(code string) ([]byte, error) {
 	}
 	return ioutil.ReadAll(resp.Body)
 
+}
+
+func getKakaoUserInfo(code string) ([]byte, error) {
+	token, err := auth.KakaoOauthConfig.Exchange(ctx, code)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to Exchange %s\n", err.Error())
+	}
+
+	resp, err := http.Get(auth.OauthKakaoUrlAPI)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to get userInfo %s\n", err.Error())
+	}
+	return ioutil.ReadAll(resp.Body)
 }

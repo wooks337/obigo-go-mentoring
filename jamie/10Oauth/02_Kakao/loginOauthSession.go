@@ -89,7 +89,7 @@ func kakaoLoginHandler(w http.ResponseWriter, r *http.Request) {
 	})
 
 	url := auth.KakaoOauthConfig.AuthCodeURL(state)
-	//	rd.JSON(w, http.StatusOK, url)
+	rd.JSON(w, http.StatusOK, url)
 	http.Redirect(w, r, url, http.StatusTemporaryRedirect)
 }
 
@@ -107,13 +107,16 @@ func kakaoAuthCallback(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+//카카오 유저정보 가져오기
+//=== 1. 토큰에 code값 받아오기
 func getUserInfo(code string) ([]byte, error) {
-	token, err := auth.KakaoOauthConfig.Exchange(ctx, code)
+
+	token, err := auth.KakaoOauthConfig.Exchange(ctx, code) // -- 1
 	if err != nil {
 		return nil, fmt.Errorf("Failed to Exchange %s\n", err.Error())
 	}
 
-	resp, err := http.Get(auth.OauthGoogleUrlAPI + token.AccessToken)
+	resp, err := http.Get(auth.OauthKakaoUrlAPI)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to get userInfo %s\n", err.Error())
 	}
