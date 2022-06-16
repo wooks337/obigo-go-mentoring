@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>로그인</title>
+    <meta charset="UTF-8">
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <script src="//code.jquery.com/jquery-3.3.1.min.js"></script>
+</head>
+<body>
+<h1>로그인 페이지</h1>
+
+<form id="loginForm">
+    <span>ID</span>
+    <input name="userid" type="text">
+    <br><br>
+
+    <span>Password</span>
+    <input name="password" type="password">
+
+    <button type="button" id="btnLogin">로그인</button>
+    <button><a href="./auth/google/login" >구글로 로그인 하기</a></button>
+</form>
+
+</body>
+<script>
+
+    $("#btnLogin").on('click', function (){
+
+        let formSerializeArray = $('#loginForm').serializeArray()
+        var object = {};
+        for (var i = 0; i < formSerializeArray.length; i++){
+            object[formSerializeArray[i]['name']] = formSerializeArray[i]['value'];
+        }
+        var loginUser = JSON.stringify(object)
+        console.log("==html",loginUser)
+
+        $.ajax({
+            url: "/login",
+            type: "POST",
+            data: loginUser,
+            success: function (data){
+                if(data == true){
+                    console.log("성공")
+                    alert("로그인 성공. 메인으로 돌아갑니다")
+                    window.location.replace("/")
+                    return
+                } else {
+                    alert(data)
+                    return
+                }
+            },
+            error: function (){
+                console.log("로그인 실패")
+            }
+        })
+    })
+
+</script>
+</html>
