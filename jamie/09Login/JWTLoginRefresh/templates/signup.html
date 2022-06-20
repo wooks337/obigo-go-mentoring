@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>회원가입</title>
+    <meta charset="UTF-8">
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <script src="//code.jquery.com/jquery-3.3.1.min.js"></script>
+</head>
+<body>
+<h1>회원가입 페이지</h1>
+<form id="signupForm">
+    <span>ID</span>
+    <input name="userID" type="text">
+{{/*    <button type="button" id="id_overlap_button">아이디 중복 검사</button>*/}}
+{{/*    <div class="check_font" id="id_check"></div>*/}}
+
+    <br><br>
+
+    <span>Password</span>
+    <input name="password" type="password">
+    <br><br>
+
+    <span>Name</span>
+    <input name="name" type="text">
+    <br><br>
+
+
+    <span>Email</span>
+    <input name="email" type="text">
+    <br><br>
+
+    <button type="button" id="btnJoin">회원 가입</button>
+</form>
+
+</body>
+
+<script>
+    // //아이디 중복 검사
+    // $('#id_overlap_button').on('click', function(){
+    //     let userId = $('input[name=userID]').val(); //userID에 입력된 값
+    //
+    //     $.ajax({
+    //         url : '/idcheck',
+    //         type : "GET",
+    //         data : userId,
+    //         success : function(data){
+    //             console.log(userId);
+    //             if(data == 1){
+    //                 $("#id_check").text("사용 중인 아이디 입니다.");
+    //                 $("#id_check").css("color", "red");
+    //             }else{
+    //                 $("#id_check").text("사용 가능한 아이디 입니다.");
+    //                 $("#id_check").css("color", "green");
+    //             }
+    //         },
+    //         error : function (){
+    //             alert("서버 요청 실패")
+    //         }
+    //     })
+    //
+    // })
+
+    //객체 직렬화
+    //Ajax를 사용하여 서버에 데이터를 보낼 경우, 데이터를 직렬화하여 Ajax요청 시 하나의 객체로서 전달한다.
+    //Jquery에서의 직렬화 메서드 : serialize 와 serializeArray(<k, v>로 구성된 배열)
+
+    //회원가입 버튼 클릭 시, 유저 데이터를 하나의 객체로 직렬화하여 ajax로 회원가입 진행
+    $("#btnJoin").on('click', function(){
+        let formSerializeArray = $('#signupForm').serializeArray()
+        var object = {};
+        for (var i = 0; i < formSerializeArray.length; i++){
+            object[formSerializeArray[i]['name']] = formSerializeArray[i]['value'];
+        }
+        var jsonUser = JSON.stringify(object)
+        console.log(jsonUser)
+
+        $.ajax({
+            type : 'POST',
+            url : '/signup',    //여기서 function 실행
+            data : jsonUser,
+            success : function (data){
+                if(data == true){
+                    alert("회원가입 완료. 로그인 해주세요")
+                    window.location.replace("/")
+                }
+            },
+            error: function (){
+                alert("회원가입 실패")
+            }
+        })
+    })
+
+
+</script>
+
+</html>

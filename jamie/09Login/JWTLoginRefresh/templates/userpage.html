@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>회원 페이지</title>
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <script src="//code.jquery.com/jquery-3.3.1.min.js"></script>
+</head>
+<body>
+<h1>인증 회원 페이지</h1>
+<p id="intro"></p>
+<ul style="list-style-type: none" id="mainUl">
+    <li style="float: left; margin-right: 10px"><a href="/">홈</a></li>
+    <li><a href="/logout">로그아웃</a></li>
+</ul>
+
+<form id="myInfoForm">
+    <span>ID</span>
+    <input readonly name="userid" id="userid" type="text">
+    <br><br>
+
+    <span>Name</span>
+    <input readonly name="name" id="name" type="text">
+    <br><br>
+
+    <span>Email</span>
+    <input readonly name="email" id="email" type="text">
+    <br><br>
+</form>
+</body>
+<script>
+
+    $(document).ready(function () {
+        $.ajax({
+            url: "/logincheck",
+            type: "POST",
+            success: function (data){
+                $("#intro").text(data["userid"]+ "님 안녕하세요.")
+                $('#userid').val(data["userid"])
+                $('#name').val(data["name"])
+                $('#email').val(data["email"])
+            },
+            error: function (){
+                console.log("실패")
+                return
+            }
+        })
+    });
+
+</script>
+
+</html>
