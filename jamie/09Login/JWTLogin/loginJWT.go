@@ -181,7 +181,6 @@ func loginHandler(w http.ResponseWriter, r *http.Request) {
 //로그아웃 기능 핸들러
 //1. 쿠키 삭제
 func logoutHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Cache-Control", "no-cache, private, max-age=0")
 	//-- 1
 	http.SetCookie(w, &http.Cookie{
 		Name:   JWTcookieID,

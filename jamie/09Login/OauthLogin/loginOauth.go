@@ -98,7 +98,7 @@ func mainHandler(w http.ResponseWriter, r *http.Request) {
 
 //구글 로그인 핸들러
 func googleLoginHandler(w http.ResponseWriter, r *http.Request) {
-	state := service.GenerateStateOauthCookie(w)
+	state := service.GenerateRandomToken()
 	newUUID, _ := uuid.NewUUID()
 
 	result, err := cli.Set(ctx, newUUID.String(), state, 0).Result()
