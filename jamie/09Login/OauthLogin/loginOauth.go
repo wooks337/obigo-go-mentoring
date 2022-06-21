@@ -98,7 +98,7 @@ func mainHandler(w http.ResponseWriter, r *http.Request) {
 
 //구글 로그인 핸들러
 func googleLoginHandler(w http.ResponseWriter, r *http.Request) {
-	state := service.GenerateRandomToken()
+	state := service.GenerateStateOauthCookie(w)
 	newUUID, _ := uuid.NewUUID()
 
 	result, err := cli.Set(ctx, newUUID.String(), state, 0).Result()
@@ -109,12 +109,12 @@ func googleLoginHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	fmt.Println(result) //생성 결과 출력
 
-	//생성된 세션 id 쿠키에 담아 응답으로 전달
-	http.SetCookie(w, &http.Cookie{
-		Name:  "sessionId",
-		Value: newUUID.String(),
-		Path:  "/",
-	})
+	////생성된 세션 id 쿠키에 담아 응답으로 전달
+	//http.SetCookie(w, &http.Cookie{
+	//	Name:  "sessionId",
+	//	Value: newUUID.String(),
+	//	Path:  "/",
+	//})
 
 	url := service.GoogleOauthConfig.AuthCodeURL(state)
 	http.Redirect(w, r, url, http.StatusTemporaryRedirect)

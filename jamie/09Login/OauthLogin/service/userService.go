@@ -11,7 +11,9 @@ import (
 	"gorm.io/gorm/logger"
 	"io/ioutil"
 	"jamie/domain"
+	"net/http"
 	"os"
+	"time"
 )
 
 const (
@@ -56,10 +58,17 @@ var GoogleOauthConfig = oauth2.Config{
 //쿠키 만료 시간 : 현재로부터 24시간
 //16byte 짜리 배열을 랜덤하게 채우고 bytes를 string으로 인코딩 -> 이 값을 state 객체로 저장
 //http header에 setcookie 설정
-func GenerateRandomToken() string {
+func GenerateStateOauthCookie(w http.ResponseWriter) string {
+	expiration := time.Now().Add(1 * 24 * time.Hour)
 	b := make([]byte, 16)
 	rand.Read(b)
 	state := base64.URLEncoding.EncodeToString(b)
+	cookie := &http.Cookie{
+		Name:    "sessionID",
+		Value:   state,
+		Expires: expiration,
+	}
+	http.SetCookie(w, cookie)
 	return state
 }
 
