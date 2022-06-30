@@ -27,17 +27,8 @@ func main() {
 
 	////테이블 생성
 	//db.AutoMigrate(&domain.TestInfo{})
+
 	////예시 데이터 입력
-	//d1 := domain.TestInfo{Name: "Ian"}
-	//d2 := domain.TestInfo{Name: "Park"}
-	//d3 := domain.TestInfo{Name: "Kim"}
-	//d4 := domain.TestInfo{Name: "Lilly"}
-	//d5 := domain.TestInfo{Name: "Robert"}
-	//db.Create(&d1)
-	//db.Create(&d2)
-	//db.Create(&d3)
-	//db.Create(&d4)
-	//db.Create(&d5)
 
 	Cron()
 }
