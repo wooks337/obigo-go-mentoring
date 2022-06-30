@@ -1,7 +1,7 @@
 package service
 
 import (
-	"11Cron/DBConnect/domain"
+	"11Cron/01_DBConnect/domain"
 	"fmt"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"

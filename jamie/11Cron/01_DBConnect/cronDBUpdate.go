@@ -1,7 +1,7 @@
 package main
 
 import (
-	"11Cron/DBConnect/service"
+	"11Cron/01_DBConnect/service"
 	"fmt"
 	"github.com/go-co-op/gocron"
 	"gorm.io/gorm"
