@@ -1,0 +1,19 @@
+pipeline {
+    agent any
+
+    stages {
+        stage('Cron Execute') {
+            steps {
+                sh "curl -S cronDBUpdate.exe"
+            }
+            post {
+                success {
+                    echo '성공~'
+                }
+                failure {
+                    echo '실패...'
+                }
+            }
+        }
+    }
+}
