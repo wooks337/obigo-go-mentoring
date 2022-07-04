@@ -4,7 +4,11 @@ pipeline {
     stages {
         stage('Build') {
             steps {
-                sh 'go build cronDBUpdate'
+                sh 'pwd'
+                dir('jamie/11Cron/01_DBConnect'){
+                    sh 'pwd'
+                    sh 'go build cronDBUpdate.go'
+                }
             }
             post {
                 success {
