@@ -4,7 +4,7 @@ pipeline {
     stages {
         stage('Cron Execute') {
             steps {
-                sh "curl -S cronDBUpdate.exe"
+                sh "go run cronDBUpdate.go"
             }
             post {
                 success {
