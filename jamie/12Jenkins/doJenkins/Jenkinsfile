@@ -2,6 +2,19 @@ pipeline {
     agent any
 
     stages {
+        stage('Build') {
+            steps {
+                sh 'go build cronDBUpdate'
+            }
+            post {
+                success {
+                    echo 'build 성공~'
+                }
+                failure {
+                    echo 'build 실패...'
+                }
+            }
+        }
         stage('Cron Execute') {
             steps {
                 sh './cronDBUpdate.exe'
