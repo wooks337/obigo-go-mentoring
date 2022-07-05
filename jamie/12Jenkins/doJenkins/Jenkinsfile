@@ -1,13 +1,16 @@
 pipeline {
     agent any
-
+    tools {
+        go "Go 1.18"
+    }
     stages {
         stage('Build') {
             steps {
                 sh 'pwd'
-                dir('jamie/11Cron/01_DBConnect'){
+                dir('jamie/12Jenkins'){
                     sh 'pwd'
-                    sh 'go build cronDBUpdate.go'
+                    sh 'go build jenkinsExample.go'
+                    sh 'ls'
                 }
             }
             post {
@@ -21,11 +24,13 @@ pipeline {
         }
         stage('Cron Execute') {
             steps {
-                sh './cronDBUpdate.exe'
+                dir('jamie/12Jenkins'){
+                    sh './jenkinsExample'
+                }
             }
             post {
                 success {
-                    echo '성공~'
+                    echo 'main 파일 실행 성공~'
                 }
                 failure {
                     echo '실패...'
