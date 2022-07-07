@@ -45,7 +45,7 @@ pipeline {
                 cd DeployDir
                 TODAY=$(date +"%Y-%m-%d_%H:%M:%S")
             	mkdir ${TODAY}
-                cp /var/jenkins_home/workspace/Jenkins-Webhook-Test/jamie/12Jenkins/jenkinsExample /var/jenkins_home/workspace/DeployDir/${TODAY}'''
+                cp /var/jenkins_home/workspace/Jenkins-Git-main.go-Test/jamie/12Jenkins/jenkinsExample /var/jenkins_home/workspace/DeployDir/${TODAY}'''
             }
         }
     }
